@@ -19,6 +19,21 @@ for child in list(body):
     if child is not sectPr:
         body.remove(child)
 
+
+def _q(t):
+    """将ASCII直引号成对转换为中文弯引号“”"""
+    if not isinstance(t, str) or '"' not in t:
+        return t
+    out = []
+    open_ = True
+    for ch in t:
+        if ch == '"':
+            out.append('\u201c' if open_ else '\u201d')
+            open_ = not open_
+        else:
+            out.append(ch)
+    return ''.join(out)
+
 def _rpr(el, bold=False, sz=None, color='000000'):
     rPr = OxmlElement('w:rPr')
     f = OxmlElement('w:rFonts'); f.set(qn('w:hint'), 'eastAsia'); rPr.append(f)
@@ -37,7 +52,7 @@ def title(text):
         e = OxmlElement(tag)
         for k, v in attrs.items(): e.set(qn(k), v)
         pPr.append(e)
-    r = p.add_run(text)
+    r = p.add_run(_q(text))
     rf = r._element.get_or_add_rPr().get_or_add_rFonts()
     for a in ('w:ascii','w:hAnsi','w:cs','w:eastAsia'): rf.set(qn(a), '宋体')
     rf.set(qn('w:hint'), 'eastAsia')
@@ -61,7 +76,7 @@ def h2(text):
     p = doc.add_paragraph(style='Heading 2')
     pPr = p._p.get_or_add_pPr()
     sp = OxmlElement('w:spacing'); sp.set(qn('w:before'),'156'); sp.set(qn('w:after'),'156'); pPr.append(sp)
-    r = p.add_run(text); r.bold = True
+    r = p.add_run(_q(text)); r.bold = True
     r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     n = sum(1 for lv, _, _ in HEADINGS if lv == 2)
     name = '_Toc90%04d' % len(HEADINGS)
@@ -77,7 +92,7 @@ def h3(text):
     ni = OxmlElement('w:numId'); ni.set(qn('w:val'),'0'); npr.append(ni)
     pPr.append(npr)
     sp = OxmlElement('w:spacing'); sp.set(qn('w:before'),'156'); sp.set(qn('w:after'),'156'); pPr.append(sp)
-    r = p.add_run(text)
+    r = p.add_run(_q(text))
     r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     name = '_Toc90%04d' % len(HEADINGS)
     HEADINGS.append((3, text, name))
@@ -86,7 +101,7 @@ def h3(text):
 
 def para(text):
     p = doc.add_paragraph(style='Normal Indent')
-    r = p.add_run(text)
+    r = p.add_run(_q(text))
     r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     return p
 
@@ -95,7 +110,7 @@ def note(text):
     p = doc.add_paragraph(style='表格后说明')
     pPr = p._p.get_or_add_pPr()
     jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'center'); pPr.append(jc)
-    r = p.add_run(text)
+    r = p.add_run(_q(text))
     rPr = r._element.get_or_add_rPr()
     rPr.get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     sz = OxmlElement('w:sz'); sz.set(qn('w:val'), '11'); rPr.append(sz)
@@ -114,7 +129,7 @@ def figure(fname, caption, source):
     kn = OxmlElement('w:keepNext'); pPr.append(kn)
     p.add_run().add_picture(CH + fname, width=Emu(CONTENT_EMU), height=Emu(int(CONTENT_EMU * h / w)))
     cp = doc.add_paragraph(); cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = cp.add_run(caption); r.bold = True; r.font.size = Pt(10.5)
+    r = cp.add_run(_q(caption)); r.bold = True; r.font.size = Pt(10.5)
     r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     note(source)
 
@@ -132,7 +147,7 @@ def table(headers, rows, widths, caption=None, source=None, aligns=None):
     if caption:
         cp = doc.add_paragraph(); cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
         pPr = cp._p.get_or_add_pPr(); pPr.append(OxmlElement('w:keepNext'))
-        r = cp.add_run(caption); r.bold = True; r.font.size = Pt(10.5)
+        r = cp.add_run(_q(caption)); r.bold = True; r.font.size = Pt(10.5)
         r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     ncol = len(headers)
     tot = sum(widths)
@@ -156,7 +171,7 @@ def table(headers, rows, widths, caption=None, source=None, aligns=None):
             else: set_borders(tcPr, top=4)
             va = OxmlElement('w:vAlign'); va.set(qn('w:val'),'center'); tcPr.append(va)
             c.paragraphs[0].text = ''
-            lines = str(t).split('\n')
+            lines = _q(str(t)).split('\n')
             for j, ln in enumerate(lines):
                 p = c.paragraphs[0] if j == 0 else c.add_paragraph()
                 pPr = p._p.get_or_add_pPr()
