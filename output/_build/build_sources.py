@@ -31,7 +31,7 @@ def block(ws,row,sub,headers,rows,linkcol=None,note=None):
                 c.hyperlink=v; c.font=LF
             else:
                 c.font=BF
-            c.alignment=Alignment(vertical='top',wrap_text=True)
+            c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         row+=1
     if note:
         ws.cell(row=row,column=1,value=note).font=Font(name='等线',size=9,italic=True,color='666666'); row+=1

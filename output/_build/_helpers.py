@@ -91,9 +91,15 @@ def para(text):
     return p
 
 def note(text):
+    # 数据来源/资料来源说明：七号字（5.5磅）、居中
     p = doc.add_paragraph(style='表格后说明')
+    pPr = p._p.get_or_add_pPr()
+    jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'center'); pPr.append(jc)
     r = p.add_run(text)
-    r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
+    rPr = r._element.get_or_add_rPr()
+    rPr.get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
+    sz = OxmlElement('w:sz'); sz.set(qn('w:val'), '11'); rPr.append(sz)
+    szCs = OxmlElement('w:szCs'); szCs.set(qn('w:val'), '11'); rPr.append(szCs)
     return p
 
 def blank():
