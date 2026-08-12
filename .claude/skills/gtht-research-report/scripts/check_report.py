@@ -30,6 +30,14 @@ BANNED = [
     (r'据不完全统计', '模糊统计口径'),
 ]
 
+# 观点性表述：多列事实、少列观点（微信明确要求）
+OPINION = [
+    (r'业内(普遍)?认为|市场(普遍)?认为|一般认为|普遍认为|有观点认为|'
+     r'业内人士(表示|指出|认为)|分析师认为|市场预期', '无主体的观点引用，应换成有主体、有时间、有口径的事实'),
+    (r'有望|或将|料将|前景广阔|大有可为|值得期待', '推测性表述，应换成已发生的事实或注明预测主体与时间'),
+    (r'某(券商|机构|研报)认为|研报(认为|指出)', '第三方观点直接引用，应改为陈述其发布了什么数据'),
+]
+
 # 仅在"拜访/关注要点"专章之外禁用的内部语
 # 领导保留了整章拜访内容，反对的是把它撒进行业和公司章节
 BANNED_OUTSIDE_VISIT = [
@@ -64,6 +72,14 @@ def para_style(p):
     return p.style.name if p.style is not None else 'Normal'
 
 
+def around(text, m, span=26):
+    """截取命中位置上下文，便于定位。"""
+    t = text.strip()
+    a = max(0, m.start() - span)
+    b = min(len(t), m.end() + span)
+    return ('…' if a else '') + t[a:b] + ('…' if b < len(t) else '')
+
+
 def iter_body_text(doc):
     """按文档顺序产出 (kind, index, style, text)。"""
     from docx.table import Table
@@ -96,16 +112,30 @@ def main(path):
         if not text.strip():
             continue
         for pat, why in BANNED:
-            if re.search(pat, text):
-                problems.append(('错误', f'第{idx}段附近', why, text.strip()[:60]))
+            m = re.search(pat, text)
+            if m:
+                problems.append(('错误', f'第{idx}段附近', why, around(text, m)))
         if not in_visit_chapter:
             for pat, why in BANNED_OUTSIDE_VISIT:
-                if re.search(pat, text):
-                    problems.append(('错误', f'第{idx}段附近', why, text.strip()[:60]))
+                m = re.search(pat, text)
+                if m:
+                    problems.append(('错误', f'第{idx}段附近', why, around(text, m)))
+        for pat, why in OPINION:
+            m = re.search(pat, text)
+            if m:
+                problems.append(('提醒', f'第{idx}段附近',
+                                 f'「{m.group(0)}」{why}', around(text, m)))
         if SOURCE_PREFIX.match(text):
             for pat, why in WORDING_IN_SOURCE:
                 if re.search(pat, text):
                     problems.append(('提醒', f'第{idx}段附近', why, text.strip()[:60]))
+            # 双出处：原始出处 + 转述出处
+            body_txt = SOURCE_PREFIX.sub('', text).split('。')[0]
+            seps = sum(body_txt.count(c) for c in '，,；;、')
+            if seps < 1:
+                problems.append(('提醒', f'第{idx}段附近',
+                                 '来源注疑似只有单一出处，应保留"原始出处 + 转述出处"两个维度',
+                                 text.strip()[:60]))
 
     # 2) 小结类标题
     for i, p in enumerate(paras, 1):
@@ -214,8 +244,10 @@ def main(path):
             if snippet:
                 print(f'      「{snippet}」')
     print('\n' + '-' * 72)
-    print('人工仍需检查：归纳性段落、内部语漏网、口径一致性、'
-          '股东/保荐关系是否混淆、上市地是否查全、主营业务描述是否属实。')
+    print('人工仍需检查：归纳性段落、内部语漏网、口径一致性（统计对象/地域/品类/时间）、'
+          '是否跨口径做过乘除、股东与保荐关系是否混淆、上市地是否查全、'
+          '主营业务描述是否属实、竞争格局是否只列了公司名单、'
+          '是否使用了客户非公开信息。')
     return 1 if errs else 0
 
 
