@@ -61,8 +61,9 @@ HEADING_EXEMPT = re.compile(r'初步判断')
 WORDING_IN_SOURCE = [
     # 领导的写法是"Wind整理成果"或"Wind金融数据库整理成果"，关键在"整理成果"，
     # 不要改写成"Wind数据库"（他 9 处全部改了回去）
-    (r'Wind\s*(?!(金融数据库)?整理成果)', 'Wind 取数在来源注中应写"Wind整理成果"'
-                                    '或"Wind金融数据库整理成果"，不要写"Wind数据库"'),
+    # 只在"Wind"直接作为出处出现时检查；"Wind指标ID""Wind收录"等描述性用法不触发
+    (r'Wind\s*(?!(金融数据库)?整理成果|指标|收录|终端|资讯|代码)',
+     'Wind 取数在来源注中应写"Wind整理成果"或"Wind金融数据库整理成果"，不要写"Wind数据库"'),
 ]
 
 SOURCE_PREFIX = re.compile(r'^\s*(数据来源|资料来源)[:：]')
