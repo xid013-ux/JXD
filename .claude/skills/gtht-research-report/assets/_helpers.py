@@ -120,12 +120,24 @@ def para(text):
     r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     return p
 
+def _sig(t):
+    """来源注署名规范化。
+    领导定稿版 25 条来源注中，署名一律为「本报告整理」，
+    从未出现"国泰海通投资银行部整理"；另有 11 条不署名、只写出处。"""
+    if not isinstance(t, str):
+        return t
+    for bad in ('国泰海通投资银行部整理', '国泰海通投行部整理',
+                '投资银行部整理', '国泰海通整理'):
+        t = t.replace(bad, '本报告整理')
+    return t
+
+
 def note(text):
     # 数据来源/资料来源说明：七号字（5.5磅）、居中
     p = doc.add_paragraph(style='表格后说明')
     pPr = p._p.get_or_add_pPr()
     jc = OxmlElement('w:jc'); jc.set(qn('w:val'), 'center'); pPr.append(jc)
-    r = p.add_run(_q(text))
+    r = p.add_run(_q(_sig(text)))
     rPr = r._element.get_or_add_rPr()
     rPr.get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     sz = OxmlElement('w:sz'); sz.set(qn('w:val'), '11'); rPr.append(sz)
