@@ -1,0 +1,157 @@
+# -*- coding: utf-8 -*-
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+import re
+
+OUT='/home/user/JXD/output/金源/国泰海通半导体设备零部件赛道资源盘点.xlsx'
+C=Alignment(horizontal='center',vertical='center',wrap_text=True)
+L=Alignment(horizontal='left',vertical='top',wrap_text=True)
+HDR=PatternFill('solid',fgColor='123F63')
+HI=PatternFill('solid',fgColor='D6E9D6')
+WN=PatternFill('solid',fgColor='FCE4C4')
+HF=Font(name='微软雅黑',size=10,bold=True,color='FFFFFF')
+BF=Font(name='微软雅黑',size=10)
+thin=Side(style='thin',color='BBBBBB'); BD=Border(left=thin,right=thin,top=thin,bottom=thin)
+wb=Workbook(); wb.remove(wb.active)
+
+def mk(name,title,headers,rows,widths,hi_col=None):
+    ws=wb.create_sheet(name)
+    ws['A1']=title; ws['A1'].font=Font(name='微软雅黑',size=12,bold=True,color='123F63')
+    ws.merge_cells(start_row=1,start_column=1,end_row=1,end_column=len(headers))
+    ws['A1'].alignment=Alignment(horizontal='left',vertical='center'); ws.row_dimensions[1].height=22
+    for i,h in enumerate(headers,1):
+        c=ws.cell(row=2,column=i,value=h); c.fill=HDR; c.font=HF; c.alignment=C; c.border=BD
+    for r,row in enumerate(rows,3):
+        for i,v in enumerate(row,1):
+            c=ws.cell(row=r,column=i,value=v); c.font=BF; c.alignment=C; c.border=BD
+        if hi_col:
+            v=str(row[hi_col-1])
+            if v.startswith('★'): 
+                for i in range(1,len(headers)+1): ws.cell(row=r,column=i).fill=HI
+            elif v.startswith('△'):
+                for i in range(1,len(headers)+1): ws.cell(row=r,column=i).fill=WN
+    for i,w in enumerate(widths,1): ws.column_dimensions[get_column_letter(i)].width=w
+    ws.freeze_panes='A3'
+    return ws
+
+ws=wb.create_sheet('00_说明')
+for i,t in enumerate([
+ '国泰海通在半导体设备零部件赛道的资源盘点',
+ '','编制时点：2026年8月14日',
+ '用途：为拜访无锡金源半导体准备的资源底稿。',
+ '',
+ '★＝与金源直接可比或直接相关，拜访时优先讲；△＝相关但需说明差异。',
+ '',
+ '⚠️ 信息使用边界（务必遵守）',
+ '1. 神州半导体、新美光、盛吉盛、上海先普为国泰海通在手项目（保荐或辅导）。',
+ '   仅可使用交易所与证监局已公开披露的内容：辅导备案公示、申报稿、'
+ '已公开的问询函及回复。',
+ '2. 上述企业的非公开经营数据、内部判断、正在准备中的回复文稿、'
+ '项目组内部信息，一律不得对外提及，不得写入任何交付物。',
+ '3. 拜访金源时可讲"我们在这个赛道有哪些项目、进展到哪一步"（公开信息），'
+ '   不可讲任何一家客户的具体经营情况。',
+ '',
+ '资料来源：Wind辅导备案数据（2026年8月14日导出）、交易所发行上市审核信息公开网站、'
+ '各地证监局辅导备案公示、公开报道。',
+],1):
+    c=ws.cell(row=i,column=1,value=t)
+    c.font=Font(name='微软雅黑',size=12,bold=True,color='123F63') if i==1 else \
+           (Font(name='微软雅黑',size=10,bold=True,color='C00000') if t.startswith('⚠️') else Font(name='微软雅黑',size=10))
+    c.alignment=L
+ws.column_dimensions['A'].width=104
+
+mk('01_同赛道项目','一、半导体设备零部件赛道：国泰海通已有项目',
+ ['标记','公司名称','与国泰海通的关系','当前状态','时间','主营业务','与金源的关系','信息使用边界'],
+ [
+ ['★','江苏神州半导体科技股份有限公司','保荐机构（国泰海通证券）',
+  '科创板IPO已问询','2026-06-30递交申报稿，状态由已受理转已问询',
+  '半导体等离子体电源系统：远程等离子源发生系统（RPS）、等离子体射频电源（RF）、'
+  '自动网络匹配器。产品应用于刻蚀设备、化学薄膜设备、离子注入、物理气相沉积',
+  '同为刻蚀与薄膜设备的核心零部件供应商，客户群重叠（北方华创、中微公司、拓荆科技）。'
+  '股东含英特尔、中微公司、大基金二期',
+  '仅用已公开的申报稿与问询回复'],
+ ['★','新美光（苏州）半导体科技股份有限公司','辅导机构（国泰海通证券）',
+  '辅导备案登记受理','2026-07-24',
+  '围绕等离子刻蚀先进制程的核心零部件：单晶硅部件（聚焦环、硅电极、硅材料托盘、硅板）、'
+  '碳化硅部件、刻蚀腔体表面镀膜；另有设备电气系统与互联部件',
+  '同为刻蚀与薄膜、沉积工艺的耗材类零部件，同在江苏（苏州／无锡）。'
+  '其硅零部件与臻宝科技同环节',
+  '仅用证监局辅导备案公示'],
+ ['★','盛吉盛半导体科技股份有限公司','辅导机构（国泰海通证券）',
+  '辅导备案登记受理','2026-07-27（宁波证监局）',
+  '集成电路专用设备及关键零部件：薄膜沉积整机系列（PECVD、HDP CVD等），'
+  '并配套半导体精密核心零部件',
+  '下游设备厂，金源的气体喷淋头与加热盘即装配于此类薄膜沉积设备',
+  '仅用证监局辅导备案公示'],
+ ['△','上海先普科技股份有限公司','辅导机构（国泰海通证券）',
+  '辅导备案登记受理','2025-12-24（拟北交所）',
+  '专注半导体行业的气体纯化器与气体过滤器，提供气体微污染控制解决方案',
+  '同属设备气体路径上的部件，与喷淋头处于同一工艺气体链条，但产品形态不同',
+  '仅用证监局辅导备案公示'],
+ ['★','中微半导体设备（上海）股份有限公司','独家保荐机构（海通证券）',
+  '已上市（688012.SH）','2019-07-22，科创板首批',
+  '等离子体刻蚀设备与MOCVD设备',
+  '刻蚀设备龙头，为金源产品的下游客户类型；同时是神州半导体与新美光的股东或客户',
+  '已上市公司，公开信息'],
+ ['△','上海硅产业集团股份有限公司','独家保荐机构（海通证券）',
+  '已上市（688126.SH）','2020-04-20，科创板',
+  '半导体硅片研发制造',
+  '上游材料环节，与金源不在同一环节，作为半导体材料资本化案例参考',
+  '已上市公司，公开信息'],
+ ['△','武汉新芯集成电路股份有限公司','联席保荐机构（国泰海通证券、华源证券）',
+  '科创板IPO已撤回终止','2024-09-30受理，2026-05-19撤回',
+  '特色工艺晶圆制造，原拟募资48亿元',
+  '下游晶圆厂环节。作为撤回案例，可用于说明何种情形下建议调整申报节奏',
+  '交易所已公开披露，公开信息'],
+ ],
+ [6,26,24,18,26,44,44,22],hi_col=1)
+
+# 02 辅导表全量半导体筛选
+src=load_workbook('/root/.claude/uploads/b33c1a84-553f-5c48-a1f8-b4ca1cd8f155/c202e791-________20260814.xlsx',data_only=True)
+sw=src['sheet2']; rows=list(sw.iter_rows(values_only=True)); hdr=list(rows[0])
+I={h:i for i,h in enumerate(hdr)}
+def g(r,k):
+    v=r[I[k]]; return '' if v is None else str(v)
+KW=re.compile(r'半导体|晶圆|芯片|集成电路|刻蚀|薄膜|真空|等离子|光刻|封装|靶材|石英|陶瓷|硅片|电子特气|零部件|精密|微电子')
+sel=[]
+for r in rows[1:]:
+    blob=g(r,'企业名称')+' '+g(r,'主要产品及业务')+' '+g(r,'Wind行业')
+    if KW.search(blob):
+        sel.append([g(r,'企业名称'), g(r,'审核状态'), g(r,'受理日')[:10],
+                    g(r,'最新公告日')[:10], g(r,'拟上市板') or '未定',
+                    g(r,'企业注册地'), (g(r,'主要产品及业务') or '（Wind未填列）')[:120]])
+sel.sort(key=lambda x:(x[1]!='辅导备案登记受理', x[0]))
+mk('02_辅导备案半导体相关','二、国泰海通辅导备案项目中的半导体相关企业（Wind 2026-08-14 导出，共106家筛出）',
+ ['企业名称','审核状态','受理日','最新公告日','拟上市板','注册地','主要产品及业务'],
+ sel,[28,16,12,12,10,10,52])
+
+mk('03_下载清单','三、招股书与问询回复下载清单（按优先级）',
+ ['优先级','公司','代码/板块','取哪些文件','为什么要它'],
+ [
+ ['P0','托伦斯精密制造（江苏）','301583.SZ／深交所创业板',
+  '招股说明书注册稿、各轮审核问询函及回复、上市委意见落实函及回复',
+  '产品含匀气盘、加热器、静电卡盘基体，与金源重合度最高；'
+  '2025-12-23受理至2026-04-25提交注册，审核口径最新'],
+ ['P0','江苏神州半导体科技','上交所科创板／在审',
+  '招股说明书申报稿；问询函及回复（如已公开）',
+  '国泰海通保荐，同为刻蚀与薄膜设备核心零部件，客户群重叠'],
+ ['P0','臻宝科技','688797.SH／上交所科创板',
+  '招股说明书注册稿、各轮问询函及回复、上市委意见落实函及回复',
+  '硅、石英、碳化硅与氧化铝陶瓷零部件及表面处理，2026-06-24上市'],
+ ['P1','中微半导体设备（上海）','688012.SH／上交所科创板',
+  '招股说明书、各轮问询函及回复',
+  '海通证券独家保荐；刻蚀设备龙头，金源产品的下游客户类型'],
+ ['P1','珂玛科技','301611.SZ／深交所创业板',
+  '招股说明书注册稿、各轮问询函及回复',
+  '先进陶瓷零部件与陶瓷加热器，2024年案例，用于对比两年内审核尺度变化'],
+ ['P2','武汉新芯集成电路','上交所科创板／已撤回',
+  '各轮问询函及回复',
+  '国泰海通联席保荐的撤回案例，可用于说明申报节奏判断'],
+ ['P2','上海硅产业集团','688126.SH／上交所科创板',
+  '招股说明书、问询函及回复',
+  '海通证券独家保荐，半导体材料资本化案例'],
+ ],
+ [8,24,22,42,52])
+
+wb.save(OUT); print('saved',OUT); print('02页签筛出',len(sel),'家')
