@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import copy, os
+import copy, os, re
 from docx import Document
 from docx.shared import Pt, Emu, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -36,6 +36,18 @@ def _q(t):
         else:
             out.append(ch)
     return ''.join(out)
+
+def _cap(t):
+    """表图标题规范化：编号与题名之间用两个空格，不用冒号。
+    领导定稿版 25 个表图标题全部为此写法，无一例外。
+    题名内部的冒号保留（如"图2  谐波减速器：国产份额与市场集中度"）。"""
+    if not isinstance(t, str):
+        return t
+    m = re.match(r'^\s*([表图])\s*(\d+)\s*[：:、\.]?\s*(.*)$', t)
+    if not m:
+        return t
+    return '%s%s  %s' % (m.group(1), m.group(2), m.group(3).strip())
+
 
 def _rpr(el, bold=False, sz=None, color='000000'):
     rPr = OxmlElement('w:rPr')
@@ -132,7 +144,7 @@ def figure(fname, caption, source):
     kn = OxmlElement('w:keepNext'); pPr.append(kn)
     p.add_run().add_picture(CH + fname, width=Emu(CONTENT_EMU), height=Emu(int(CONTENT_EMU * h / w)))
     cp = doc.add_paragraph(); cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    r = cp.add_run(_q(caption)); r.bold = True; r.font.size = Pt(10.5)
+    r = cp.add_run(_q(_cap(caption))); r.bold = True; r.font.size = Pt(10.5)
     r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     note(source)
 
@@ -150,7 +162,7 @@ def table(headers, rows, widths, caption=None, source=None, aligns=None):
     if caption:
         cp = doc.add_paragraph(); cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
         pPr = cp._p.get_or_add_pPr(); pPr.append(OxmlElement('w:keepNext'))
-        r = cp.add_run(_q(caption)); r.bold = True; r.font.size = Pt(10.5)
+        r = cp.add_run(_q(_cap(caption))); r.bold = True; r.font.size = Pt(10.5)
         r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     ncol = len(headers)
     tot = sum(widths)

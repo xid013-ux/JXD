@@ -66,6 +66,12 @@ WORDING_IN_SOURCE = [
      'Wind 取数在来源注中应写"Wind整理成果"或"Wind金融数据库整理成果"，不要写"Wind数据库"'),
 ]
 
+# 署名：领导定稿版一律用「本报告整理」，从不用"国泰海通投资银行部整理"
+BAD_SIGNOFF = re.compile(r'国泰海通投资银行部整理|国泰海通证券整理|本部门整理')
+
+# 表图标题：编号与题名之间用空格，不用冒号
+CAPTION = re.compile(r'^\s*([表图])\s*(\d+)\s*([：:])')
+
 SOURCE_PREFIX = re.compile(r'^\s*(数据来源|资料来源)[:：]')
 
 
@@ -126,7 +132,18 @@ def main(path):
             if m:
                 problems.append(('提醒', f'第{idx}段附近',
                                  f'「{m.group(0)}」{why}', around(text, m)))
+        m = CAPTION.match(text)
+        if m:
+            problems.append(('错误', f'第{idx}段',
+                             f'表图标题的编号与题名之间应用空格，不用「{m.group(3)}」'
+                             f'（领导定稿版 25 个标题全部用空格）',
+                             text.strip()[:40]))
         if SOURCE_PREFIX.match(text):
+            m = BAD_SIGNOFF.search(text)
+            if m:
+                problems.append(('错误', f'第{idx}段',
+                                 f'来源注署名应为「本报告整理」，不写「{m.group(0)}」',
+                                 around(text, m)))
             for pat, why in WORDING_IN_SOURCE:
                 if re.search(pat, text):
                     problems.append(('提醒', f'第{idx}段附近', why, text.strip()[:60]))
