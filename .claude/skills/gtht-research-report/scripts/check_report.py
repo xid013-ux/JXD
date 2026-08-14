@@ -207,10 +207,15 @@ def main(path):
                          f'来源注 {n_src} 条，少于 表{n_tbl} + 图{n_pic} = {n_tbl + n_pic}，'
                          f'可能有表或图缺来源注', ''))
 
-    # 7) 目录（仅正文报告需要；提纲 memo 无表无图、篇幅短，不检）
+    lv = Counter(para_style(p) for p in paras)
+
+    # 7) 目录（仅完整正文报告需要）
+    # 提纲 memo：无表无图且篇幅短
+    # 单章节选：一级标题不足 2 个，说明不是完整报告
     chars_total = sum(len(p.text) for p in paras)
     is_memo = n_tbl == 0 and n_pic == 0 and chars_total < 4000
-    if not is_memo:
+    is_excerpt = lv.get('Heading 2', 0) < 2
+    if not (is_memo or is_excerpt):
         has_toc = 'TOC \\o' in doc.element.body.xml
         if not has_toc:
             problems.append(('错误', '全文', '未检出 TOC 域，目录可能是手打的', ''))
@@ -218,14 +223,13 @@ def main(path):
         if uf is None or uf.get(qn('w:val')) not in ('true', '1', 'on'):
             problems.append(('提醒', '全文',
                              'settings.xml 未设 updateFields=true，打开时不会刷新页码', ''))
-    else:
+    elif is_memo:
         # 提纲 memo 的专属约束：纯文字、不超过两页
         if chars_total > 2600:
             problems.append(('提醒', '全文',
                              f'提纲约 {chars_total} 字，可能超过两页，需精简', ''))
 
     # 8) 标题层级
-    lv = Counter(para_style(p) for p in paras)
     if lv.get('Heading 1', 0):
         problems.append(('提醒', '全文', f'出现 {lv["Heading 1"]} 个 Heading 1，本体例只用 Heading 2/3', ''))
     if lv.get('Heading 4', 0):
