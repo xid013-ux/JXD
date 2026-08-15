@@ -169,7 +169,8 @@ def set_borders(el, top=None, bottom=None, left=None, right=None, iH=None, iV=No
         e.set(qn('w:space'),'0'); e.set(qn('w:color'),'010000'); b.append(e)
     el.append(b)
 
-def table(headers, rows, widths, caption=None, source=None, aligns=None):
+def table(headers, rows, widths, caption=None, source=None, aligns=None,
+          bold_rows=None):
     """widths: list of pct-of-table numbers summing to 5000-ish scale handled internally."""
     if caption:
         cp = doc.add_paragraph(); cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -188,7 +189,7 @@ def table(headers, rows, widths, caption=None, source=None, aligns=None):
     jc = OxmlElement('w:jc'); jc.set(qn('w:val'),'center'); tblPr.append(jc)
     set_borders(tblPr, top=12, bottom=12, left=12, right=12, iH=4, iV=4)
 
-    def fill(cells, texts, header):
+    def fill(cells, texts, header, strong=False):
         for i, (c, t) in enumerate(zip(cells, texts)):
             tcPr = c._tc.get_or_add_tcPr()
             for ch in list(tcPr):
@@ -212,7 +213,7 @@ def table(headers, rows, widths, caption=None, source=None, aligns=None):
                 r = p.add_run(ln)
                 rPr = r._element.get_or_add_rPr()
                 rPr.get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
-                if header: r.bold = True
+                if header or strong: r.bold = True
                 r.font.size = Pt(10.5)
                 r.font.color.rgb = RGBColor(0,0,0)
 
@@ -221,12 +222,13 @@ def table(headers, rows, widths, caption=None, source=None, aligns=None):
     trPr.append(OxmlElement('w:cantSplit')); trPr.append(OxmlElement('w:tblHeader'))
     j = OxmlElement('w:jc'); j.set(qn('w:val'),'center'); trPr.append(j)
     fill(hr.cells, headers, True)
-    for row in rows:
+    bset = set(bold_rows or [])
+    for ri, row in enumerate(rows):
         tr = tbl.add_row()
         trPr = tr._tr.get_or_add_trPr()
         trPr.append(OxmlElement('w:cantSplit'))
         j = OxmlElement('w:jc'); j.set(qn('w:val'),'center'); trPr.append(j)
-        fill(tr.cells, row, False)
+        fill(tr.cells, row, False, ri in bset)
     if source: note(source)
     return tbl
 

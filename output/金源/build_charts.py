@@ -39,18 +39,24 @@ ax.legend(handles=[mp.Patch(color=c,label=k) for k,c in cmap.items()],
           frameon=False,fontsize=9,ncol=3,loc='upper center',bbox_to_anchor=(0.5,1.13))
 fig.tight_layout(); fig.savefig(D+'fig2_maolilv.png',dpi=200); plt.close(fig)
 
-# 图3 与金源对应产品的分品类毛利率变动
-prod=['加热器\n（对应加热盘）','匀气盘\n（对应气体喷头）','气体分布盘\n（对应气体喷头）']
-y23=[14.39,27.44,20.05]; y24=[52.79,31.86,25.88]
-fig,ax=plt.subplots(figsize=(7.6,3.7)); x=np.arange(len(prod)); w=0.34
-ax.bar(x-w/2,y23,w,label='2023年',color=P[3])
-ax.bar(x+w/2,y24,w,label='2024年',color=P[0])
-for i in range(len(prod)):
-    ax.text(x[i]-w/2,y23[i]+1.0,f'{y23[i]:.2f}',ha='center',fontsize=9)
-    ax.text(x[i]+w/2,y24[i]+1.0,f'{y24[i]:.2f}',ha='center',fontsize=9,color=P[0])
-ax.set_xticks(x); ax.set_xticklabels(prod,fontsize=9.5)
-ax.set_ylabel('毛利率（%）'); ax.set_ylim(0,62)
-base(ax); ax.legend(frameon=False,fontsize=9.5)
+# 图3 与金源对应品类的分产品毛利率：两家厂商对比
+lbl=['匀气盘\n先锋精科','匀气盘\n托伦斯','气体分布盘\n托伦斯',
+     '加热器\n先锋精科','加热器\n托伦斯']
+y22=[43.31,26.72,40.93,49.85,-18.68]
+y23=[39.76,27.44,20.05,39.85,14.39]
+y24=[40.73,31.86,25.88,43.66,52.79]
+fig,ax=plt.subplots(figsize=(8.6,3.9)); x=np.arange(len(lbl)); w=0.26
+ax.bar(x-w,y22,w,label='2022年',color=P[4])
+ax.bar(x,  y23,w,label='2023年',color=P[3])
+ax.bar(x+w,y24,w,label='2024年',color=P[0])
+for i in range(len(lbl)):
+    for dx,v,c in ((-w,y22[i],'#333333'),(0,y23[i],'#333333'),(w,y24[i],P[0])):
+        ax.text(x[i]+dx,v+(1.2 if v>=0 else -3.6),f'{v:.2f}',
+                ha='center',fontsize=8,color=c)
+ax.axhline(0,color='#999999',lw=.9)
+ax.set_xticks(x); ax.set_xticklabels(lbl,fontsize=9)
+ax.set_ylabel('毛利率（%）'); ax.set_ylim(-26,62)
+base(ax); ax.legend(frameon=False,fontsize=9,ncol=3,loc='upper left')
 fig.tight_layout(); fig.savefig(D+'fig3_danpin.png',dpi=200); plt.close(fig)
 
 # 图4 问询收敛
