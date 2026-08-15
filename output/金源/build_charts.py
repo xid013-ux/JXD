@@ -60,25 +60,24 @@ base(ax); ax.legend(frameon=False,fontsize=9,ncol=3,loc='upper left')
 fig.tight_layout(); fig.savefig(D+'fig3_danpin.png',dpi=200); plt.close(fig)
 
 # 图4 问询收敛
-fig,ax=plt.subplots(figsize=(7.8,3.5))
+comp=['神工股份','珂玛科技','先锋精科','托伦斯','臻宝科技']
 rounds=['首轮','第二轮','第三轮','第四轮','落实函']
 data={'神工股份':[49,20,8,8,2],'珂玛科技':[19,5,None,None,3],
+      '先锋精科':[18,7,None,None,None],
       '托伦斯':[15,3,None,None,1],'臻宝科技':[13,5,None,None,None]}
-off={'神工股份':(0,9),'珂玛科技':(0,9),'托伦斯':(0,-15),'臻宝科技':(13,-4)}
-cols=[P[0],P[1],P[2],P[3]]
-for i,(k,v) in enumerate(data.items()):
-    xs=[j for j,y in enumerate(v) if y is not None]; ys=[y for y in v if y is not None]
-    for a,b in zip(range(len(xs)-1),range(1,len(xs))):
-        st='-' if xs[b]-xs[a]==1 else ':'
-        ax.plot([xs[a],xs[b]],[ys[a],ys[b]],st,lw=1.8,color=cols[i])
-    ax.plot(xs,ys,'o',ms=6,label=k,color=cols[i])
-    for j,y in zip(xs,ys):
-        ax.annotate(str(y),(j,y),textcoords='offset points',
-                    xytext=off[k],ha='center',fontsize=9,color=cols[i])
-ax.set_xticks(range(5)); ax.set_xticklabels(rounds)
-ax.set_ylabel('该轮问题数量（个）'); ax.set_ylim(-4,56)
-base(ax); ax.legend(frameon=False,fontsize=9.5)
-ax.text(0.99,0.72,'虚线表示该企业无第三、四轮问询',transform=ax.transAxes,
-        ha='right',fontsize=8,color='#555555')
+fig,ax=plt.subplots(figsize=(8.6,3.8))
+x=np.arange(len(comp)); w=0.16
+for r in range(5):
+    vals=[data[c][r] for c in comp]
+    pos=[x[i]+(r-2)*w for i in range(len(comp))]
+    pv=[(p,v) for p,v in zip(pos,vals) if v is not None]
+    ax.bar([p for p,_ in pv],[v for _,v in pv],w,label=rounds[r],color=P[r])
+    for p,v in pv:
+        ax.text(p,v+1.0,str(v),ha='center',fontsize=8,
+                color='#333333' if r>1 else P[0])
+ax.set_xticks(x); ax.set_xticklabels(comp,fontsize=10)
+ax.set_ylabel('该轮问题数量（个）'); ax.set_ylim(0,58)
+base(ax); ax.legend(frameon=False,fontsize=9,ncol=5,loc='upper center',
+                    bbox_to_anchor=(0.5,1.13))
 fig.tight_layout(); fig.savefig(D+'fig4_shoulian.png',dpi=200); plt.close(fig)
 print('四张图已生成')
