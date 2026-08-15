@@ -83,18 +83,30 @@ ax.legend(handles=[mp.Patch(color=c,label=k) for k,c in cmap.items()],
           frameon=False,fontsize=8.5,ncol=5,loc='upper center',bbox_to_anchor=(0.5,1.14))
 fig.tight_layout(); fig.savefig(D+'fig5_maolilv.png',dpi=200); plt.close(fig)
 
-# 图6 问询收敛
-fig,ax=plt.subplots(figsize=(8.2,3.8))
-rounds=['首轮','第二轮','第三轮','第四轮','落实函']
-data={'中微公司':[52,10,3,2,3],'托伦斯':[15,3,None,None,1],
-      '臻宝科技':[13,5,None,None,None],'珂玛科技':[13,5,None,None,3]}
-for i,(k,v) in enumerate(data.items()):
-    xs=[j for j,y in enumerate(v) if y is not None]; ys=[y for y in v if y is not None]
-    ax.plot(xs,ys,marker='o',ms=6,lw=1.8,label=k,color=P[i])
-    for aa,bb in zip(xs,ys): ax.annotate(str(bb),(aa,bb),textcoords='offset points',
-                                         xytext=(0,7),ha='center',fontsize=8.5,color=P[i])
-ax.set_xticks(range(5)); ax.set_xticklabels(rounds)
-ax.set_ylabel('该轮问题数量（个）'); ax.set_ylim(0,58)
-base(ax); ax.legend(frameon=False,fontsize=9)
-fig.tight_layout(); fig.savefig(D+'fig6_shoulian.png',dpi=200); plt.close(fig)
-print('六张图已生成（每张单一维度）')
+def shoulian(fname,rounds,data,offs,ymax,colors):
+    fig,ax=plt.subplots(figsize=(7.6,3.4))
+    for i,(k,v) in enumerate(data.items()):
+        xs=[j for j,y in enumerate(v) if y is not None]; ys=[y for y in v if y is not None]
+        ax.plot(xs,ys,marker='o',ms=6,lw=1.8,label=k,color=colors[i])
+        for j,y in zip(xs,ys):
+            ax.annotate(str(y),(j,y),textcoords='offset points',
+                        xytext=offs[k][j],ha='center',fontsize=9,color=colors[i])
+    ax.set_xticks(range(len(rounds))); ax.set_xticklabels(rounds)
+    ax.set_ylabel('该轮问题数量（个）'); ax.set_ylim(-ymax*0.09,ymax)
+    base(ax); ax.legend(frameon=False,fontsize=9.5)
+    fig.tight_layout(); fig.savefig(D+fname,dpi=200); plt.close(fig)
+
+# 图6 四轮问询样本的收敛
+shoulian('fig6_shoulian4.png',['首轮','第二轮','第三轮','第四轮','落实函'],
+         {'中微公司':[52,10,3,2,3],'神工股份':[49,20,8,8,2]},
+         {'中微公司':[(0,9),(0,-16),(-13,-4),(-13,-4),(0,9)],
+          '神工股份':[(0,-16),(0,9),(0,9),(0,9),(0,-16)]},60,[P[0],P[2]])
+
+# 图7 两轮问询样本的收敛
+shoulian('fig7_shoulian2.png',['首轮','第二轮','落实函'],
+         {'珂玛科技':[19,5,3],'托伦斯':[15,3,1],'臻宝科技':[13,5,None]},
+         {'珂玛科技':[(0,9),(0,9),(0,9)],
+          '托伦斯':[(14,-4),(0,-16),(0,-16)],
+          '臻宝科技':[(0,-16),(15,-4),None]},22,[P[1],P[2],P[3]])
+
+print('七张图已生成（每张单一维度）')
