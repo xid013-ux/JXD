@@ -831,5 +831,16 @@ para('几处口径需要注意。晶圆厂零部件采购额与向零部件厂�
      '分产品毛利率中先锋精科2024年为1—3月数据，'
      '与托伦斯的全年数据不完全可比。')
 
+# 清除模板带入的文档属性（作者、最后保存人、修订次数等）
+cp = doc.core_properties
+cp.author = ''
+cp.last_modified_by = ''
+cp.title = '无锡金源半导体与设备零部件耗材环节研究'
+cp.subject = ''
+cp.comments = ''
+cp.category = ''
+cp.keywords = ''
+cp.revision = 1
+
 make_toc(doc)
 import _fixup
