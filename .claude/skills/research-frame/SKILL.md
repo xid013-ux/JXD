@@ -1,5 +1,5 @@
 ---
-name: biaodi-research-frame
+name: research-frame
 description: 标的研究定框架 —— 在动手写报告之前，先把目标公司拆到单品颗粒度、定到最细的细分行业、找出该细分行业真正的研究重点，再据此定报告框架。当用户要研究一家标的公司、做拜访前研究、做行业/赛道研究，或说"先拆一下这家公司""先定框架"时使用。定完框架后交给 gtht-research-report 出稿。
 ---
 
