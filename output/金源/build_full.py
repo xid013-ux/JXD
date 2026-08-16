@@ -831,11 +831,11 @@ para('几处口径需要注意。晶圆厂零部件采购额与向零部件厂�
      '分产品毛利率中先锋精科2024年为1—3月数据，'
      '与托伦斯的全年数据不完全可比。')
 
-# 清除模板带入的文档属性（作者、最后保存人、修订次数等）
+# 清除模板带入的文档属性，全部置空，不写入任何署名信息
 cp = doc.core_properties
 cp.author = ''
 cp.last_modified_by = ''
-cp.title = '无锡金源半导体与设备零部件耗材环节研究'
+cp.title = ''
 cp.subject = ''
 cp.comments = ''
 cp.category = ''
@@ -843,4 +843,28 @@ cp.keywords = ''
 cp.revision = 1
 
 make_toc(doc)
+
+# 去掉 keepNext / keepLines：Word 会在这类段落左侧显示黑色小方块标记
+from docx.oxml.ns import qn as _qn
+_KEEP = (_qn('w:keepNext'), _qn('w:keepLines'))
+for _pPr in doc.element.body.iter(_qn('w:pPr')):
+    for _c in list(_pPr):
+        if _c.tag in _KEEP:
+            _pPr.remove(_c)
+for _st in doc.styles.element.iter(_qn('w:style')):
+    _sp = _st.find(_qn('w:pPr'))
+    if _sp is None:
+        continue
+    for _c in list(_sp):
+        if _c.tag in _KEEP:
+            _sp.remove(_c)
+
+# 表图标题需与表体同页，单独保留 keepNext
+import re as _re
+from docx.oxml import OxmlElement as _OE
+for _p in doc.element.body.iter(_qn('w:p')):
+    _t = ''.join(_n.text or '' for _n in _p.iter(_qn('w:t')))
+    if _re.match(r'^(表|图)\d+\s', _t):
+        _p.get_or_add_pPr().append(_OE('w:keepNext'))
+
 import _fixup
