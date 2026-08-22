@@ -27,14 +27,55 @@ function howto() {
     ['第四步  换图表', '能用表和图说清的，不留成段文字。证据材料移到附录。'],
     ['第五步  对数', '摘要、正文、财务表、融资方案四处的同一个数字必须一致。'],
     ['第六步  出版本', '正式版 15—25 页；删成路演版 10—12 页；再压成一页纸。'],
+    ['第七步  做脱密', '对外流转的版本：企业名用代称、证照打码、财务只给汇总口径、清空文件属性。'],
   ];
   steps.forEach((st, i) => {
-    const y = 1.5 + i * 0.92;
+    const y = 1.45 + i * 0.85;
     s.addShape(pres.ShapeType.rect, { x:0.8, y:y, w:0.06, h:0.72, fill:{ color:MID } });
     s.addText(st[0], { x:1.05, y:y, w:2.5, h:0.35, fontFace:CN, fontSize:15, bold:true, color:DEEP, margin:0 });
-    s.addText(st[1], { x:3.6, y:y, w:8.9, h:0.72, fontFace:CN, fontSize:13, color:GRAY, margin:0, valign:'top' });
+    s.addText(st[1], { x:3.6, y:y, w:8.9, h:0.78, fontFace:CN, fontSize:13, color:GRAY, margin:0, valign:'top' });
   });
   s.addNotes('强调第三步和第五步：标题写结论、四处数字对齐，是投资人最先看出问题的两个地方。');
+}
+
+
+function routes() {
+  const s = pres.addSlide();
+  s.addText('先判断自己是哪一类', { x:0.8, y:0.5, w:11.7, h:0.6, fontFace:CN, fontSize:28, bold:true, color:DEEP });
+  s.addText('两类企业的 BP 骨架差别很大，动笔前先定路线', { x:0.8, y:1.08, w:11.7, h:0.3, fontFace:CN, fontSize:13, color:GRAY, margin:0 });
+  s.addShape(pres.ShapeType.line, { x:0.8, y:1.5, w:11.7, h:0, line:{ color:LIGHT, width:1.5 } });
+  const cols = [
+    [0.8, '运营资产型', '能源、供热、环保、制造服务', [
+      ['正文展开单位', '按项目或子公司逐个介绍，一个项目一页'],
+      ['核心经营指标', '运营规模（面积、产能、发电量）、利用率、单位成本'],
+      ['行业章节重点', '政策沿革与国家战略、区域需求、下游容量测算'],
+      ['竞争格局写法', '可比上市公司经营与估值对照表'],
+      ['估值锚', '可比公司市盈率、单位资产估值'],
+      ['最易被追问', '资产权属、补贴依赖、关联交易、负债与现金流'],
+    ]],
+    [6.9, '产品技术型', '器械、半导体、材料、软件', [
+      ['正文展开单位', '按产品线或应用领域展开，一个领域一页'],
+      ['核心经营指标', '产品数量、注册证数量、市占率、终端进院或装机量'],
+      ['行业章节重点', '目标人群与适应症拆解、终端使用量趋势、替代空间'],
+      ['竞争格局写法', '产品线覆盖数量对比、细分品类市占率与竞品清单'],
+      ['估值锚', '收入倍数、可比交易、在研管线价值'],
+      ['最易被追问', '注册证有效期、专利归属、单一大客户、集采降价'],
+    ]],
+  ];
+  cols.forEach(([x, name, scope, rows]) => {
+    s.addShape(pres.ShapeType.rect, { x:x, y:1.75, w:5.6, h:0.72, fill:{ color:DEEP } });
+    s.addText(name, { x:x + 0.2, y:1.82, w:5.2, h:0.32, fontFace:CN, fontSize:16, bold:true, color:'FFFFFF', margin:0 });
+    s.addText(scope, { x:x + 0.2, y:2.14, w:5.2, h:0.26, fontFace:CN, fontSize:11, color:'C3D6E3', margin:0 });
+    rows.forEach((r, i) => {
+      const y = 2.62 + i * 0.72;
+      s.addShape(pres.ShapeType.rect, { x:x, y:y, w:5.6, h:0.66, fill:{ color: i % 2 ? 'FFFFFF' : PALE } });
+      s.addText(r[0], { x:x + 0.15, y:y + 0.06, w:1.5, h:0.5, fontFace:CN, fontSize:10.5, bold:true, color:MID, margin:0, valign:'top' });
+      s.addText(r[1], { x:x + 1.7, y:y + 0.06, w:3.75, h:0.56, fontFace:CN, fontSize:10.5, color:'333B44', margin:0, valign:'top' });
+    });
+  });
+  s.addText('既有运营资产又有产品线的，按收入占比大的那一类搭主骨架。',
+    { x:0.8, y:7.0, w:11.7, h:0.35, fontFace:CN, fontSize:11, color:GRAY, margin:0 });
+  s.addNotes('这一页是分叉点：选错骨架，后面每一页都要返工。');
 }
 
 const MODULES = [
@@ -139,12 +180,15 @@ const MODULES = [
    '正文页面保持干净，证据全部放附录，正文用一句话指向附录页码。'],
 ];
 
-MODULES.forEach((m, i) => {
+cover();
+howto();
+routes();
+
+function moduleSlide(m, label) {
   const [name, ask, pages, items, note] = m;
   const s = pres.addSlide();
-  const no = String(i + 1).padStart(2, '0');
   // 页眉
-  s.addText(`模块 ${no} / 15`, { x:0.8, y:0.38, w:3, h:0.3, fontFace:CN, fontSize:11, color:LIGHT, margin:0 });
+  s.addText(label, { x:0.8, y:0.38, w:4, h:0.3, fontFace:CN, fontSize:11, color:LIGHT, margin:0 });
   s.addText(`建议 ${pages}`, { x:9.5, y:0.38, w:3, h:0.3, fontFace:CN, fontSize:11, color:LIGHT, align:'right', margin:0 });
   s.addText(name, { x:0.8, y:0.7, w:11.7, h:0.55, fontFace:CN, fontSize:26, bold:true, color:DEEP, margin:0 });
   s.addText('（正式稿请把标题改成本页结论）', { x:0.8, y:1.28, w:11.7, h:0.28, fontFace:CN, fontSize:11, color:'9AA6B2', margin:0 });
@@ -167,7 +211,51 @@ MODULES.forEach((m, i) => {
     fontFace:CN, fontSize:12, color:'A8B2BC', align:'center', margin:0 });
   s.addText(`注意：${note}`, { x:0.8, y:6.75, w:11.7, h:0.5, fontFace:CN, fontSize:10.5, color:GRAY, margin:0 });
   s.addNotes(note);
-});
+}
+
+MODULES.forEach((m, i) => moduleSlide(m, `模块 ${String(i + 1).padStart(2, '0')} / 15`));
+
+const OPTIONAL = [
+  ['关键数字看板', '一屏之内，这家公司做到了什么程度', '1 页',
+   ['6—8 个关键数字，每个配一句口径与时点说明（收入、销量、终端使用量、客户数、已授权知识产权、新增资质）',
+    '同一版式并排给出下一年目标值，用虚线框区分已实现与目标'],
+   '与核心摘要择一即可，不要两页说同样的话。实绩与目标必须在视觉上分开。'],
+  ['销售与渠道网络', '产品怎么卖出去、铺到什么程度', '1 页',
+   ['广度：覆盖省份或区域数量、代理商数量及变化、空白区域及原因',
+    '深度：进入的终端客户数量，与主要竞品同口径对比',
+    '渠道结构：直销与代理的收入占比、代理商选择与考核方式',
+    '重点终端名单，用标识或名称呈现的须事先取得授权'],
+   '注明统计时点与依据（如"以招标公示为准，截至某年某月"）。只增代理不增收入会被追问。'],
+  ['研发管线与在研产品', '现在的收入之外，下一批产品在哪', '1—2 页',
+   ['管线清单：产品名称、所处阶段（预研/动物试验/型式检验/临床/注册申请/待批）、预计获批或量产时间',
+    '每个在研产品的目标场景与对应市场规模',
+    '推进节奏时间轴：已完成什么、下一个节点在何时',
+    '研发投入及占收入比、研发人员数量'],
+   '阶段名称用行业通用口径，不要自造。预计获批时间要与主管部门实际审评周期对得上。'],
+  ['资质与产品注册清单', '哪些产品拿到了合法销售的凭证', '1 页',
+   ['逐项列出：证书编号、产品名称、管理类别或资质等级、发证机构、取得时间、有效期',
+    '按持证主体分列，集团下多主体的分开列清楚',
+    '近两年新增的单独标注，未来 1—2 年预计取得的单独成组'],
+   '证书编号要能在主管部门网站查到。多主体持证的要说明证照与经营主体的对应关系。'],
+  ['并购与整合成效', '收来的资产有没有做好', '1 页',
+   ['收购标的、时间、持股比例、交易对价（可选）',
+    '收购前后经营对比：销量、收入、市占率变化，用同口径复合增长率呈现',
+    '整合动作：团队、渠道、产能、供应链上具体做了什么'],
+   '图上明确标出哪一段是收购之后的数据，不能把标的原有的增长算成整合成效。'],
+  ['国际业务', '海外市场做到什么程度', '1 页',
+   ['出口收入及增速，按国别或地区拆分',
+    '出口国家数量与客户数量',
+    '境外注册或认证进度',
+    '海外渠道形式：经销、代工还是自建团队'],
+   '占比不高时重点写增速和国别扩张，不要用绝对额和国内业务比较。'],
+  ['外部顾问与科研合作', '外部资源怎么支撑这家公司', '1 页',
+   ['科研合作项目：名称、级别、牵头单位、合作单位、执行周期、公司承担部分',
+    '外部顾问：所在机构、职务、专业领域、与公司合作的具体内容',
+    '合作协议或立项文件可作佐证，涉及对方信息的须脱敏'],
+   '顾问名单要事先取得本人同意。只挂名不参与的不要放，尽调阶段会逐个访谈。'],
+];
+
+OPTIONAL.forEach((m, i) => moduleSlide(m, `可选模块 ${String.fromCharCode(65 + i)} · 按企业情况选用`));
 
 // 检查清单
 (function () {
