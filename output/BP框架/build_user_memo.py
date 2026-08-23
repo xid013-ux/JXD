@@ -111,7 +111,7 @@ subtitle(COVER['sub'])
 h2('全篇大纲概览')
 body('本指引与《燕京中发　融资 BP 框架》教学材料逐页对应，'
      '用于公司各部门在编制融资商业计划书过程中对照使用。'
-     '全篇分五章、共 25 页，每一页列明三项内容：编写前需要准备的材料、'
+     '全篇分五章、共 21 页，每一页列明三项内容：编写前需要准备的材料、'
      '本页的写法，以及编写时应当注意的事项。')
 body('章节顺序建议不做调整。' + OUTLINE['lead'] +
      '本轮融资为混合所有制改革引入战略投资者，方案须报国资监管部门审核并在'
@@ -124,7 +124,7 @@ for cno, cname, cgoal, pages in CHAPTERS:
         rows.append([cname if i == 0 else '', no, name, lead])
 table(headers=['章', '页', '页面名称', '本页说明'],
       rows=rows, widths=[11, 6, 26, 57],
-      caption='表1  全篇 25 页构成',
+      caption='表1  全篇 21 页构成',
       aligns=['center', 'center', 'left', 'left'])
 
 for ci, (cno, cname, cgoal, pages) in enumerate(CHAPTERS, start=2):

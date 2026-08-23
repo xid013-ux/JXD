@@ -80,7 +80,7 @@ function card(s, x, y, w, h, title, items) {
         { x:x + 0.62, y:y + 0.06, w:colW - 0.76, h:0.34, fontFace:CN, fontSize:11.5, color:INK, margin:0, valign:'top' });
     });
   });
-  s.addText('全篇 25 页 · 五章 · 每页均给出所需材料、写法与注意事项',
+  s.addText('全篇 21 页 · 五章 · 每页均给出所需材料、写法与注意事项',
     { x:M, y:6.6, w:CW, h:0.35, fontFace:CN, fontSize:12, color:GRAY, margin:0 });
   footer(s, `${String(idx).padStart(2, '0')} / ${String(total - 1).padStart(2, '0')}`);
 })();
