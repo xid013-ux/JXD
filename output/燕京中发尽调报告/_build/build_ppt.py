@@ -67,25 +67,26 @@ def hline(x1, x2, y, color=LINE):
     return c
 
 # ================= 标题 =================
-label(1.0, 0.55, 32, 1.0, '燕京中发业务架构调整方案——架构调整前后对比', sz=18, bold=True, color=RGBColor(0x15,0x3E,0x5C))
-ln = s.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Cm(1.0), Cm(1.62), Cm(32.6), Cm(1.62))
+label(1.0, 0.42, 24, 0.95, '燕京中发业务架构调整方案——架构调整前后对比', sz=18, bold=True, color=RGBColor(0x15,0x3E,0x5C))
+label(1.0, 1.20, 24, 0.55, '（土地事项按方案一「收购燕京啤酒（邢台）有限公司100%股权」列示）', sz=9.5, color=RGBColor(0x88,0x88,0x88))
+ln = s.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Cm(1.0), Cm(1.85), Cm(32.6), Cm(1.85))
 ln.line.color.rgb = BLUE; ln.line.width = Pt(2)
 
-label(1.0, 1.75, 14.5, 0.7, '一、调整前', sz=13, bold=True, color=RGBColor(0x15,0x3E,0x5C))
-label(19.4, 1.75, 13.5, 0.7, '二、调整后', sz=13, bold=True, color=RGBColor(0x15,0x3E,0x5C))
+label(1.0, 1.98, 14.5, 0.7, '一、调整前', sz=13, bold=True, color=RGBColor(0x15,0x3E,0x5C))
+label(19.4, 1.98, 13.5, 0.7, '二、调整后', sz=13, bold=True, color=RGBColor(0x15,0x3E,0x5C))
 
 # ================= 左：调整前 =================
-box(1.0, 2.7, 4.0, 1.05, '燕京啤酒\n（000729）', sz=10)
-box(5.6, 2.7, 3.5, 1.05, '燕京集团', sz=10)
-box(9.7, 2.7, 4.2, 1.05, '食品发酵\n研究院', sz=10)
+box(1.0, 2.95, 4.0, 1.05, '燕京啤酒\n（000729）', sz=10)
+box(5.6, 2.95, 3.5, 1.05, '燕京集团', sz=10)
+box(9.7, 2.95, 4.2, 1.05, '食品发酵\n研究院', sz=10)
 
 # 三股东 -> 发行人
-hline(3.0, 11.8, 4.35)
-vline(3.0, 3.75, 4.35, arrow=False); vline(7.35, 3.75, 4.35, arrow=False); vline(11.8, 3.75, 4.35, arrow=False)
-label(3.15, 3.80, 2.0, 0.5, '80%', sz=9, bold=True)
-label(7.50, 3.80, 2.2, 0.5, '17.5%', sz=9, bold=True)
-label(11.95, 3.80, 2.0, 0.5, '2.5%', sz=9, bold=True)
-vline(7.35, 4.35, 5.05)
+hline(3.0, 11.8, 4.55)
+vline(3.0, 4.00, 4.55, arrow=False); vline(7.35, 4.00, 4.55, arrow=False); vline(11.8, 4.00, 4.55, arrow=False)
+label(3.15, 4.02, 2.0, 0.5, '80%', sz=9, bold=True)
+label(7.50, 4.02, 2.2, 0.5, '17.5%', sz=9, bold=True)
+label(11.95, 4.02, 2.0, 0.5, '2.5%', sz=9, bold=True)
+vline(7.35, 4.55, 5.05)
 box(3.6, 5.05, 7.5, 1.15, '北京燕京中发生物技术有限公司（发行人）', fill=BLUE_D, sz=10.5)
 
 # 发行人 -> 中发邢台 33%
@@ -94,14 +95,14 @@ label(7.50, 6.55, 2.0, 0.5, '33%', sz=9, bold=True)
 box(4.3, 7.55, 6.1, 1.15, '燕京中发生物技术\n（邢台）有限公司', sz=10)
 
 # 燕京啤酒 -> 中发邢台 67%
-vline(1.6, 3.75, 8.13, arrow=False)
+vline(1.6, 4.00, 8.13, arrow=False)
 hline(1.6, 4.3, 8.13)
 c = s.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Cm(1.6), Cm(8.13), Cm(4.3), Cm(8.13))
 c.line.color.rgb = LINE; c.line.width = Pt(1.25)
 label(1.75, 7.62, 2.0, 0.5, '67%', sz=9, bold=True)
 
 # 燕京啤酒 -> 燕京啤酒（邢台）100%
-vline(2.6, 3.75, 10.6, arrow=False)
+vline(2.6, 4.00, 10.6, arrow=False)
 hline(2.6, 4.3, 10.6)
 c2 = s.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Cm(2.6), Cm(10.6), Cm(4.3), Cm(10.6))
 c2.line.color.rgb = LINE; c2.line.width = Pt(1.25)
@@ -134,16 +135,16 @@ label(14.45, 8.4, 4.9, 5.4,
       sz=8.5, color=RGBColor(0x15,0x3E,0x5C))
 
 # ================= 右：调整后 =================
-box(19.4, 2.7, 4.0, 1.05, '燕京啤酒\n（000729）', sz=10)
-box(24.0, 2.7, 3.5, 1.05, '燕京集团', sz=10)
-box(28.1, 2.7, 4.2, 1.05, '食品发酵\n研究院', sz=10)
+box(19.4, 2.95, 4.0, 1.05, '燕京啤酒\n（000729）', sz=10)
+box(24.0, 2.95, 3.5, 1.05, '燕京集团', sz=10)
+box(28.1, 2.95, 4.2, 1.05, '食品发酵\n研究院', sz=10)
 
-hline(21.4, 30.2, 4.35)
-vline(21.4, 3.75, 4.35, arrow=False); vline(25.75, 3.75, 4.35, arrow=False); vline(30.2, 3.75, 4.35, arrow=False)
-label(21.55, 3.80, 2.4, 0.5, '↑ 上升', sz=8.5, bold=True, color=RED)
-label(25.90, 3.80, 2.4, 0.5, '↓ 稀释', sz=8.5, bold=True, color=RGBColor(0x88,0x88,0x88))
-label(30.35, 3.80, 2.4, 0.5, '↓ 稀释', sz=8.5, bold=True, color=RGBColor(0x88,0x88,0x88))
-vline(25.75, 4.35, 5.05)
+hline(21.4, 30.2, 4.55)
+vline(21.4, 4.00, 4.55, arrow=False); vline(25.75, 4.00, 4.55, arrow=False); vline(30.2, 4.00, 4.55, arrow=False)
+label(21.55, 4.02, 2.4, 0.5, '↑ 上升', sz=8.5, bold=True, color=RED)
+label(25.90, 4.02, 2.4, 0.5, '↓ 稀释', sz=8.5, bold=True, color=RGBColor(0x88,0x88,0x88))
+label(30.35, 4.02, 2.4, 0.5, '↓ 稀释', sz=8.5, bold=True, color=RGBColor(0x88,0x88,0x88))
+vline(25.75, 4.55, 5.05)
 box(22.0, 5.05, 7.5, 1.15, '北京燕京中发生物技术有限公司（发行人）', fill=BLUE_D, sz=10.5)
 
 # 发行人 -> 两家子公司
@@ -178,8 +179,10 @@ label(19.4, 13.9, 13.5, 2.6,
 # ================= 页脚 =================
 foot = s.shapes.add_connector(MSO_CONNECTOR.STRAIGHT, Cm(1.0), Cm(17.5), Cm(32.6), Cm(17.5))
 foot.line.color.rgb = RGBColor(0xCC,0xCC,0xCC); foot.line.width = Pt(0.75)
-label(1.0, 17.65, 24, 0.9,
-      '注：调整后持股比例以经国资监管部门备案的评估结果为准；本图为方案示意。',
+label(1.0, 17.65, 24.5, 0.9,
+      '注：本图列示方案一（股权收购）。若采用方案二（收购土地使用权及地上建筑物），'
+      '燕京啤酒（邢台）有限公司仍由燕京啤酒持有，仅土地、厂房过户至上市主体，宗地四需另行以协议方式安排使用。\n'
+      '调整后持股比例以经国资监管部门备案的评估结果为准，本图为方案示意。',
       sz=8, color=RGBColor(0x88,0x88,0x88))
 label(26.0, 17.65, 6.6, 0.9, '国泰海通证券  燕京中发IPO项目组', sz=8,
       color=RGBColor(0x88,0x88,0x88), align=PP_ALIGN.RIGHT)
