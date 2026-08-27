@@ -19,6 +19,19 @@ def new_doc():
             body.remove(el)
     return d
 
+
+def _keepnext(p):
+    """在 pStyle 之后插入 keepNext（CT_PPr 要求 pStyle 排第一）"""
+    pPr = p._element.get_or_add_pPr()
+    if pPr.find(qn('w:keepNext')) is not None:
+        return
+    kn = OxmlElement('w:keepNext')
+    ps = pPr.find(qn('w:pStyle'))
+    if ps is None:
+        pPr.insert(0, kn)
+    else:
+        ps.addnext(kn)
+
 def _run(p, text, bold=False, sz=None):
     r = p.add_run(text)
     r.bold = bold
@@ -60,9 +73,32 @@ def unit(d, text):
     return p
 
 def note(d, text):
+    """数据来源注：七号居中（部门体例）"""
     p = d.add_paragraph(style='表格后说明')
-    _run(p, text, sz=10.5)
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _run(p, text, sz=5.5)
     return p
+
+def cap(d, text):
+    """表/图标题：五号加粗居中，编号与题名之间用空格"""
+    p = d.add_paragraph(style='表格后说明')
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _keepnext(p)
+    _run(p, text, bold=True, sz=10.5)
+    return p
+
+def figure(d, path, caption, source):
+    """插图：宽度与正文栏宽匹配，图题在下方"""
+    from PIL import Image
+    from docx.shared import Emu
+    W = 5074920
+    w, h = Image.open(path).size
+    p = d.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    _keepnext(p)
+    p.add_run().add_picture(path, width=Emu(W), height=Emu(int(W*h/w)))
+    cap(d, caption)
+    note(d, source)
 
 def _cell(tc, text, bold, align, first_row, last_row, width):
     """按 CT_TcPr 规定顺序重建单元格属性：tcW -> tcBorders -> vAlign"""
@@ -82,8 +118,7 @@ def _cell(tc, text, bold, align, first_row, last_row, width):
         tcPr.append(b)
     va = OxmlElement('w:vAlign'); va.set(qn('w:val'), 'center'); tcPr.append(va)
     p = tc.paragraphs[0]
-    pPr = p._element.get_or_add_pPr()
-    kn = OxmlElement('w:keepNext'); pPr.insert(0, kn)
+    _keepnext(p)
     p.alignment = {'c': WD_ALIGN_PARAGRAPH.CENTER,
                    'l': WD_ALIGN_PARAGRAPH.LEFT,
                    'r': WD_ALIGN_PARAGRAPH.RIGHT}[align]
