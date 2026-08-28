@@ -246,6 +246,82 @@ def main(path):
             problems.append(('提醒', '全文',
                              f'提纲约 {chars_total} 字，可能超过两页，需精简', ''))
 
+    # 8b) 表图编号连续性与交叉引用
+    caps = {}
+    for kind, idx, style, text in iter_body_text(doc):
+        if kind != 'p':
+            continue
+        m = re.match(r'^(表|图)\s*(\d+)\s', text.strip())
+        if m:
+            caps.setdefault(m.group(1), []).append(int(m.group(2)))
+    for kw, nums in caps.items():
+        want = list(range(1, len(nums) + 1))
+        if nums != want:
+            problems.append(('错误', '全文',
+                             f'{kw}编号不连续或有重复：{nums}', ''))
+    # 正文里的"见表X/图X"是否越界
+    for kw, nums in caps.items():
+        top = max(nums) if nums else 0
+        for m in re.finditer(rf'{kw}\s*(\d+)', all_text):
+            n = int(m.group(1))
+            if n > top:
+                problems.append(('错误', '全文',
+                                 f'引用了不存在的{kw}{n}（全文最大为{kw}{top}）',
+                                 around(all_text, m)))
+                break
+
+    # 8c) 长难句与全文重复长句
+    body_paras = [p.text for p in paras
+                  if para_style(p) not in ('Heading 2', 'Heading 3')
+                  and not re.match(r'^(表|图)\s*\d+\s', p.text.strip())
+                  and not p.text.strip().startswith(('资料来源', '数据来源'))]
+    seen = {}
+    for txt in body_paras:
+        for sent in re.split(r'(?<=。)', txt):
+            sent = sent.strip()
+            if len(sent) < 22:
+                continue
+            # 分号并列、顿号清单都属可读结构，不算长难句；
+            # 真正要拎出来的是靠嵌套定语堆长的句子
+            listy = ('；' in sent) or (sent.count('、') >= 3)
+            if len(sent) >= 70 and not listy:
+                problems.append(('提醒', '正文',
+                                 f'长难句 {len(sent)} 字，考虑拆分', sent[:60] + '…'))
+            seen[sent] = seen.get(sent, 0) + 1
+    for sent, n in seen.items():
+        if n > 1:
+            problems.append(('错误', '正文',
+                             f'该句全文出现 {n} 次，上文说过下文不必再说',
+                             sent[:60] + '…'))
+
+    # 8d) 表格几何回归校验
+    sect = doc.element.body.find(qn('w:sectPr'))
+    if sect is not None:
+        pg = sect.find(qn('w:pgSz')); mar = sect.find(qn('w:pgMar'))
+        if pg is not None and mar is not None:
+            content_tw = (int(pg.get(qn('w:w')))
+                          - int(mar.get(qn('w:left'))) - int(mar.get(qn('w:right'))))
+            for ti, tbl in enumerate(doc.element.body.iter(qn('w:tbl')), 1):
+                pr = tbl.find(qn('w:tblPr'))
+                if pr is None:
+                    continue
+                tw = pr.find(qn('w:tblW'))
+                lay = pr.find(qn('w:tblLayout'))
+                grid = tbl.find(qn('w:tblGrid'))
+                if tw is None or tw.get(qn('w:type')) != 'dxa':
+                    problems.append(('错误', f'表{ti}',
+                                     '表宽不是 dxa 绝对值；pct + 自适应会让列宽被 Word 重排', ''))
+                elif int(tw.get(qn('w:w'))) != content_tw:
+                    problems.append(('错误', f'表{ti}',
+                                     f'表宽 {tw.get(qn("w:w"))} ≠ 版心 {content_tw}', ''))
+                if lay is None or lay.get(qn('w:type')) != 'fixed':
+                    problems.append(('错误', f'表{ti}', '未设 tblLayout=fixed，列宽保不住', ''))
+                if grid is not None:
+                    gs = sum(int(c.get(qn('w:w'))) for c in grid.findall(qn('w:gridCol')))
+                    if gs != content_tw:
+                        problems.append(('错误', f'表{ti}',
+                                         f'tblGrid 合计 {gs} ≠ 版心 {content_tw}', ''))
+
     # 8) 标题层级
     if lv.get('Heading 1', 0):
         problems.append(('提醒', '全文', f'出现 {lv["Heading 1"]} 个 Heading 1，本体例只用 Heading 2/3', ''))

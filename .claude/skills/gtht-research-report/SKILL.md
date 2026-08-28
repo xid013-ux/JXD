@@ -127,9 +127,28 @@ pdfinfo /tmp/pg/<报告>.pdf | grep -i Pages
 
 ### 第 5 步：自检
 
+**快检**（无依赖，每次改完都跑）：
+
 ```bash
 python3 .claude/skills/gtht-research-report/scripts/check_report.py <报告.docx>
 ```
+
+查禁用词、内部语、小结段、固定用词、署名、表图标题格式，外加：
+表图编号连续性与交叉引用越界、长难句与全文重复句、表格几何（dxa 绝对列宽 /
+fixed 布局 / 合计等于版心）。
+
+**溯源**（定稿前跑一次全量，必做）：
+
+```bash
+pdftotext -layout <招股书.pdf> <原文.txt>          # 先把原始资料转文本
+python3 .claude/skills/gtht-research-report/scripts/trace_numbers.py \
+        <报告.docx> <原始资料目录>
+```
+
+把正文每个数字回原文比对。**这一步抓到过真错**——金源那次查出先锋精科
+归母净利润 1.90 应为 1.89、江丰电子过会日期、以及把只适用于碳化硅的
+结论套到全品类上。脚本列出的"未找到"项要逐个确认：本报告加总的、
+Wind 或网络检索来的属正常，**但必须能说出出处；说不出的整条删掉**。
 
 再人工过一遍 `references/写作规范.md` 末尾的定稿检查清单。
 
@@ -209,6 +228,9 @@ python3 .claude/skills/gtht-research-report/scripts/smoke_test.py /tmp/smoke
 
 每一轮开工先做：把返回件转成 docx，逐段与自己的版本比对，
 **把人改过的地方全部并入，再动别的**。
+
+⚠️ **返回件只放临时目录，不要提交进仓库。** 里面是领导的内部判断与点评，
+仓库会推到远端。diff 完即可，不留档。
 
 ```bash
 soffice --headless --convert-to docx --outdir <dir> <返回件.doc>
