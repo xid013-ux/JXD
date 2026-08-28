@@ -64,6 +64,9 @@ description: GTHT内部研究报告 —— 按国泰海通投行内部研究报�
 **客户非公开信息与商业秘密禁止输入 AI、禁止写入任何底稿。**
 敏感信息、结论型表述、对外承诺属"慎用"，需先与项目负责人确认。
 
+写到**本司在手项目**时另有一套规则（只用官方已公开披露的内容），
+名单与开工问法见 `references/在手项目与保密.md`。
+
 ## 工作流程
 
 ### 第 0 步：先出提纲 memo，等确认
@@ -107,6 +110,18 @@ description: GTHT内部研究报告 —— 按国泰海通投行内部研究报�
 用 `assets/` 里的代码生成 Word（见下），Excel 底稿和来源清单用 openpyxl。
 排版参数见 `references/排版规范.md`。
 
+### 第 4.5 步：如果领导给了页数，就量
+
+领导没提页数就不用管。**提了就必须量，不能凭字数估**——凭估算会差很多
+（金源那次估 20 页、实际 29 页）。
+
+```bash
+soffice --headless --convert-to pdf --outdir /tmp/pg <报告.docx>
+pdfinfo /tmp/pg/<报告>.pdf | grep -i Pages
+```
+
+超了先报给用户、说明超在哪一章，**由用户决定砍什么**，不要自己删内容。
+
 ### 第 5 步：自检
 
 ```bash
@@ -119,6 +134,9 @@ python3 .claude/skills/gtht-research-report/scripts/check_report.py <报告.docx
 
 四份文件：正文 Word、图表数据底稿 Excel、数据来源清单 Excel、研究提纲 memo。
 用户可能只要其中一部分，按要求给。见 `references/交付物与IBD.md`。
+
+**只交 docx，不要转 .doc。** doc 是 Word 97 二进制格式，且必须经 LibreOffice
+有损转换才能得到，表格边框、图片、字体名都可能在转换中掉东西。脚本本身原生输出 docx。
 
 ## 用 assets/ 生成 Word
 
@@ -168,10 +186,30 @@ python3 .claude/skills/gtht-research-report/scripts/smoke_test.py /tmp/smoke
 
 ## 已知环境限制（要如实告诉用户，不要假装做到了）
 
-- LibreOffice 在本环境无法加载 docx，**无法渲染 PDF、无法核对页数和视觉效果**
+- LibreOffice 默认只装了 core，**缺 Writer 模块，任何 docx 都打不开**。
+  装上就能渲染 PDF、数页数、看排版：
+  ```bash
+  apt-get install -y libreoffice-writer
+  soffice --headless --convert-to pdf --outdir <dir> <报告.docx>
+  pdfinfo <报告.pdf> | grep -i Pages
+  ```
+  装之前不要说"做不到"，那是过时结论
 - 外部下载常被拦截，**招股书/年报等原始文件往往打不包**，只能给带 URL 的来源清单
 - **IBD Tools 是用户机器上的 Word 加载项，我这边调用不了**；
   做法是产出"插件友好"的文件让用户在 Word 里一键美化，见 `references/交付物与IBD.md`
+
+## 改稿轮的第一件事：diff
+
+领导/用户返回的版本里，**批注之外往往还直接改了正文**。
+只看批注不看正文改动会漏——金源那次漏了四处，其中一处是他补的关键信源。
+
+每一轮开工先做：把返回件转成 docx，逐段与自己的版本比对，
+**把人改过的地方全部并入，再动别的**。
+
+```bash
+soffice --headless --convert-to docx --outdir <dir> <返回件.doc>
+# 再用 lxml 抽取段落与表格行，逐行 diff
+```
 
 ## 参考文件
 
@@ -183,3 +221,4 @@ python3 .claude/skills/gtht-research-report/scripts/smoke_test.py /tmp/smoke
 | `references/排版规范.md` | 字体字号、页面、表格、图、来源注、目录的全部参数 |
 | `references/数据与来源规范.md` | 取数纪律、口径处理、来源标注写法、复核流程 |
 | `references/交付物与IBD.md` | 四份交付物的规格、Excel 体例、IBD Tools 衔接 |
+| `references/在手项目与保密.md` | 本司在手项目名单与保密边界 **（涉及本司项目时必读）** |

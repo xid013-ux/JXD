@@ -17,6 +17,19 @@ CH  = os.environ.get('DOCX_CHARTS', os.path.join(os.getcwd(), 'charts')) + os.se
 
 doc = Document(TPL)
 body = doc.element.body
+
+def _text_width_twips():
+    """版心宽度（twips）= 页宽 - 左右页边距。表格按此宽度分配绝对列宽。
+
+    直接读 sectPr 的原始属性，不用 python-docx 的 Length —— 后者经 EMU
+    换算会有几个 twips 的误差（模板实测 11906 被读成 11909）。
+    """
+    sp = body.find(qn('w:sectPr'))
+    pg = sp.find(qn('w:pgSz')); mar = sp.find(qn('w:pgMar'))
+    return (int(pg.get(qn('w:w')))
+            - int(mar.get(qn('w:left'))) - int(mar.get(qn('w:right'))))
+
+CONTENT_TW = _text_width_twips()
 sectPr = body.find(qn('w:sectPr'))
 for child in list(body):
     if child is not sectPr:
@@ -171,7 +184,7 @@ def set_borders(el, top=None, bottom=None, left=None, right=None, iH=None, iV=No
 
 def table(headers, rows, widths, caption=None, source=None, aligns=None,
           bold_rows=None):
-    """widths: list of pct-of-table numbers summing to 5000-ish scale handled internally."""
+    """widths: 各列相对比例（任意量纲），内部按版心宽度换算成绝对列宽（twips）。"""
     if caption:
         cp = doc.add_paragraph(); cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
         pPr = cp._p.get_or_add_pPr(); pPr.append(OxmlElement('w:keepNext'))
@@ -179,22 +192,37 @@ def table(headers, rows, widths, caption=None, source=None, aligns=None,
         r._element.get_or_add_rPr().get_or_add_rFonts().set(qn('w:hint'),'eastAsia')
     ncol = len(headers)
     tot = sum(widths)
-    pcts = [int(round(w / tot * 5000)) for w in widths]
+    # 绝对列宽（twips），合计正好等于版心宽度；余数补到最宽的一列
+    cols = [int(w / tot * CONTENT_TW) for w in widths]
+    cols[cols.index(max(cols))] += CONTENT_TW - sum(cols)
     tbl = doc.add_table(rows=0, cols=ncol)
     tblPr = tbl._tbl.tblPr
     for ch in list(tblPr):
-        if ch.tag in (qn('w:tblW'), qn('w:tblBorders'), qn('w:jc'), qn('w:tblStyle')):
+        if ch.tag in (qn('w:tblW'), qn('w:tblBorders'), qn('w:jc'),
+                      qn('w:tblStyle'), qn('w:tblLayout'), qn('w:tblCellMar')):
             tblPr.remove(ch)
-    tw = OxmlElement('w:tblW'); tw.set(qn('w:w'),'5352'); tw.set(qn('w:type'),'pct'); tblPr.append(tw)
+    tw = OxmlElement('w:tblW'); tw.set(qn('w:w'),str(CONTENT_TW)); tw.set(qn('w:type'),'dxa')
+    tblPr.append(tw)
     jc = OxmlElement('w:jc'); jc.set(qn('w:val'),'center'); tblPr.append(jc)
+    # 固定布局：不让 Word 按内容重排列宽，否则设定的比例保不住
+    tl = OxmlElement('w:tblLayout'); tl.set(qn('w:type'),'fixed'); tblPr.append(tl)
+    cm = OxmlElement('w:tblCellMar')
+    for tag, v in (('w:top','0'),('w:left','108'),('w:bottom','0'),('w:right','108')):
+        e = OxmlElement(tag); e.set(qn('w:w'),v); e.set(qn('w:type'),'dxa'); cm.append(e)
+    tblPr.append(cm)
     set_borders(tblPr, top=12, bottom=12, left=12, right=12, iH=4, iV=4)
+    # tblGrid 必须与列宽一致，否则 Word 仍按 grid 排版
+    grid = tbl._tbl.find(qn('w:tblGrid'))
+    if grid is not None:
+        for gc, w in zip(grid.findall(qn('w:gridCol')), cols):
+            gc.set(qn('w:w'), str(w))
 
     def fill(cells, texts, header, strong=False):
         for i, (c, t) in enumerate(zip(cells, texts)):
             tcPr = c._tc.get_or_add_tcPr()
             for ch in list(tcPr):
                 if ch.tag == qn('w:tcW'): tcPr.remove(ch)
-            w = OxmlElement('w:tcW'); w.set(qn('w:w'),str(pcts[i])); w.set(qn('w:type'),'pct'); tcPr.append(w)
+            w = OxmlElement('w:tcW'); w.set(qn('w:w'),str(cols[i])); w.set(qn('w:type'),'dxa'); tcPr.append(w)
             if header: set_borders(tcPr, top=12, bottom=4)
             else: set_borders(tcPr, top=4)
             va = OxmlElement('w:vAlign'); va.set(qn('w:val'),'center'); tcPr.append(va)
