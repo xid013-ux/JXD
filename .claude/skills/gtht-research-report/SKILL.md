@@ -78,7 +78,10 @@ description: GTHT内部研究报告 —— 按国泰海通投行内部研究报�
 
 ### 第 1 步：搭骨架
 
-沿用 `references/报告结构.md` 里的九章骨架，按题目增删。
+**先按标的性质选结构，不要套固定骨架**：题目问行业走 A（产业链研究），
+题目问一家公司走 B（公司先行），只做初判走 C。章节安排写进框架里让用户确认。
+见 `references/报告结构.md` 开头的"先定章节"。
+
 标题层级只用两级：`一、`（自动编号）+ `1.1`（手写编号）。
 
 ### 第 2 步：取数（四步法）
@@ -132,8 +135,9 @@ python3 .claude/skills/gtht-research-report/scripts/check_report.py <报告.docx
 
 ### 第 6 步：交付
 
-四份文件：正文 Word、图表数据底稿 Excel、数据来源清单 Excel、研究提纲 memo。
-用户可能只要其中一部分，按要求给。见 `references/交付物与IBD.md`。
+**默认只交正文 docx。** 其余三份（图表数据底稿 Excel、数据来源清单 Excel、
+研究提纲 memo）**开工时问一句要不要**，不主动全出——多数场合只要正文。
+规格见 `references/交付物与IBD.md`。
 
 **只交 docx，不要转 .doc。** doc 是 Word 97 二进制格式，且必须经 LibreOffice
 有损转换才能得到，表格边框、图片、字体名都可能在转换中掉东西。脚本本身原生输出 docx。
