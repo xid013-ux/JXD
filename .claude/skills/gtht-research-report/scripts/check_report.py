@@ -3,7 +3,8 @@
 """GTHT 内部研究报告 —— 定稿自检
 
 用法：
-    python3 check_report.py 报告.docx
+    python3 check_report.py 报告.docx            # 全量，定稿前跑一次
+    python3 check_report.py 报告.docx --brief     # 只报错误，提醒折叠成计数
 
 检查项对应 references/写作规范.md 的定稿检查清单中可自动化的部分。
 人工仍需过一遍内容类检查（是否有小结段、是否有内部语的漏网之鱼等）。
@@ -104,7 +105,7 @@ def iter_body_text(doc):
                     yield 'tc', pi, 'TableCell', c.text
 
 
-def main(path):
+def main(path, brief=False):
     doc = Document(path)
     problems = []   # (级别, 位置, 说明, 摘录)
 
@@ -330,6 +331,20 @@ def main(path):
 
     # ---------- 输出 ----------
     chars = sum(len(p.text) for p in paras)
+    errs = [p for p in problems if p[0] == '错误']
+    warns = [p for p in problems if p[0] == '提醒']
+
+    # --brief：只报错误，提醒折叠成计数。改稿轮反复跑用这个，省上下文。
+    if brief:
+        print(f'{path} ｜ 段{len(paras)} 表{n_tbl} 图{n_pic} 源{n_src} 约{chars}字 '
+              f'｜ 错误{len(errs)} 提醒{len(warns)}')
+        for _, where, why, _s in errs:
+            print(f'  ✗ {where}：{why}')
+        if not errs:
+            print('  ✓ 无错误项' + (f'（{len(warns)} 项提醒已折叠，去掉 --brief 查看）'
+                                  if warns else ''))
+        return 1 if errs else 0
+
     print(f'文件：{path}')
     print(f'段落 {len(paras)} ｜ 表 {n_tbl} ｜ 图 {n_pic} ｜ 来源注 {n_src} ｜ 正文约 {chars} 字')
     print(f'标题：一级 {lv.get("Heading 2", 0)} 个，二级 {lv.get("Heading 3", 0)} 个')
@@ -339,8 +354,6 @@ def main(path):
         print('✅ 自动检查项全部通过。仍需人工过一遍内容类检查清单。')
         return 0
 
-    errs = [p for p in problems if p[0] == '错误']
-    warns = [p for p in problems if p[0] == '提醒']
     for level, group in (('错误', errs), ('提醒', warns)):
         if not group:
             continue
@@ -358,6 +371,7 @@ def main(path):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    args = [a for a in sys.argv[1:] if a != '--brief']
+    if len(args) != 1:
         sys.exit(__doc__)
-    sys.exit(main(sys.argv[1]))
+    sys.exit(main(args[0], brief='--brief' in sys.argv[1:]))

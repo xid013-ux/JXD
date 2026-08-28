@@ -113,6 +113,11 @@ description: GTHT内部研究报告 —— 按国泰海通投行内部研究报�
 用 `assets/` 里的代码生成 Word（见下），Excel 底稿和来源清单用 openpyxl。
 排版参数见 `references/排版规范.md`。
 
+改稿轮改构建脚本，**用 Edit 工具直接改那几行**，不要写 `python - <<EOF`
+去批量替换：后者每改一次就会把整个脚本重新塞回上下文，几十轮下来是纯浪费。
+确实要批量替换时，先一次性校验所有替换对都能唯一命中，再统一落盘，
+不要边替换边断言（断言中途失败会导致前面的替换也没写进去）。
+
 ### 第 4.5 步：如果领导给了页数，就量
 
 领导没提页数就不用管。**提了就必须量，不能凭字数估**——凭估算会差很多
@@ -130,6 +135,9 @@ pdfinfo /tmp/pg/<报告>.pdf | grep -i Pages
 **快检**（无依赖，每次改完都跑）：
 
 ```bash
+# 改稿轮：只报错误，提醒折叠成计数，输出一两行
+python3 .claude/skills/gtht-research-report/scripts/check_report.py <报告.docx> --brief
+# 定稿前：去掉 --brief 跑一次全量，把提醒逐条看完
 python3 .claude/skills/gtht-research-report/scripts/check_report.py <报告.docx>
 ```
 
