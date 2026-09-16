@@ -118,6 +118,17 @@ class Builder:
         self._rpr(p.add_run(text), 10.5, False)
         return p
 
+    def figcap(self, text):
+        """图题：图上方居中，宋体加粗 10.5pt，与图体同页"""
+        p = self._p()
+        pf = p.paragraph_format
+        pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pf.space_before = Pt(6)
+        pf.space_after = Pt(3)
+        p._p.get_or_add_pPr().append(OxmlElement('w:keepNext'))
+        self._rpr(p.add_run(text), 10.5, True)
+        return p
+
     def pic(self, path, width_in):
         """插图：居中，无首行缩进"""
         p = self._p()
