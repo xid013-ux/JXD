@@ -5,7 +5,7 @@
 图二 人形机器人硬件成本结构
 图三 2025年全球人形机器人关节模组需求结构
 图四 全球谐波减速机产能
-图五 全球通用具身智能机器人出货量
+图五 人形机器人单机成本与人工成本
 """
 import matplotlib
 matplotlib.use('Agg')
@@ -135,20 +135,31 @@ fig.tight_layout()
 fig.savefig(D + '/fig4.png', dpi=220, bbox_inches='tight')
 plt.close(fig)
 
-# ---------- 图五 全球通用具身智能机器人出货量 ----------
-fig, ax = plt.subplots(figsize=(5.4, 3.1))
-ax.bar(range(2), [0.23, 1.30], 0.42, color=[P[2], P[0]],
+# ---------- 图五 人形机器人单机成本与人工成本 ----------
+fig, ax = plt.subplots(figsize=(6.2, 3.2))
+yrs = ['2023年', '2026年']
+robot = [7.0, 2.0]
+wage = [5.37, 6.16]
+x = range(2)
+w = 0.26
+ax.bar([i - w / 2 for i in x], robot, w, color=P[0], label='人形机器人单机成本',
        edgecolor='#FFFFFF', linewidth=.6)
-for i, v in enumerate([0.23, 1.30]):
-    ax.text(i, v + 0.05, f'{v:.2f} 万台', ha='center', fontsize=10, color=P[0])
-ax.add_patch(FancyArrowPatch((0.18, 0.28), (0.92, 1.30),
-                             arrowstyle='-|>', mutation_scale=11,
-                             color='#2E75B6', linewidth=1.2,
-                             connectionstyle='arc3,rad=-0.22'))
-ax.text(0.5, 1.30, '增长近 5 倍', ha='center', fontsize=10, color='#2E75B6')
-ax.set_xticks(range(2)); ax.set_xticklabels(['2024年', '2025年'], fontsize=10)
-ax.set_ylabel('出货量（万台）', fontsize=10)
-ax.set_ylim(0, 1.6); ax.set_xlim(-0.55, 1.55)
+ax.bar([i + w / 2 for i in x], wage, w, color='#C00000', label='美国制造业工人年薪',
+       edgecolor='#FFFFFF', linewidth=.6)
+for i, v in zip(x, robot):
+    ax.text(i - w / 2, v + 0.15, f'{v:.0f}', ha='center', fontsize=9.5, color=P[0])
+for i, v in zip(x, wage):
+    ax.text(i + w / 2, v + 0.15, f'{v:.2f}', ha='center', fontsize=9.5, color='#C00000')
+ax.annotate('', xy=(1 - w / 2, 2.35), xytext=(0 - w / 2, 6.8),
+            arrowprops=dict(arrowstyle='-|>', color=P[1], linewidth=1.3,
+                            connectionstyle='arc3,rad=0.18'))
+ax.text(0.30, 4.55, '降幅超过 70%', fontsize=10, color=P[1], ha='center')
+ax.text(1 + w / 2, 6.72, '+15%', fontsize=10, color='#C00000', ha='center')
+ax.set_xticks(list(x)); ax.set_xticklabels(yrs, fontsize=10)
+ax.set_ylabel('万美元', fontsize=10)
+ax.set_ylim(0, 8.4); ax.set_xlim(-0.48, 1.48)
+ax.legend(fontsize=9, frameon=False, loc='upper center', ncol=2,
+          bbox_to_anchor=(0.5, -0.13))
 _clean(ax)
 fig.tight_layout()
 fig.savefig(D + '/fig5.png', dpi=220, bbox_inches='tight')
