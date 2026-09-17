@@ -193,7 +193,7 @@ for i, t in enumerate(['金属材料及工程材料', '轴承', '电子元器件
     box(xs[0], 0.645-i*0.175, W, 0.13, t, P[4], P[2], fs=9.5)
 
 # 中游
-box(xs[1], 0.595, W, 0.205, '谐波减速机 · 驱动器\n编码器 · 力传感器', P[3], P[1], fs=9.5)
+box(xs[1], 0.585, W, 0.215, '电机 · 谐波减速机 · 驱动器\n编码器 · 力传感器', P[3], P[1], fs=9)
 ax.add_patch(FancyArrowPatch((xs[1]+W/2, 0.585), (xs[1]+W/2, 0.515),
              arrowstyle='-|>', mutation_scale=11, color=P[1], linewidth=1.2))
 box(xs[1], 0.345, W, 0.16, '一体化关节模组', P[0], P[0], fs=11.5, tc='#FFFFFF', bold=True)
