@@ -166,38 +166,3 @@ fig.savefig(D + '/fig5.png', dpi=220, bbox_inches='tight')
 plt.close(fig)
 
 print('五张图已生成：', sorted(os.listdir(D)))
-
-# ---------- 图零 一体化关节模组的构成 ----------
-fig, ax = plt.subplots(figsize=(7.6, 3.15))
-ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis('off')
-
-ax.text(0.155, 0.95, '传统分离式方案', ha='center', fontsize=11, color='#595959',
-        fontweight='bold')
-ax.text(0.73, 0.95, '一体化关节模组', ha='center', fontsize=11, color=P[0],
-        fontweight='bold')
-
-parts = ['电机', '减速机', '编码器', '驱动器', '力矩传感器']
-for i, name in enumerate(parts):
-    y = 0.74 - i * 0.145
-    _box(ax, 0.03, y, 0.25, 0.115, name, '#F2F2F2', '#BFBFBF', fs=10)
-
-ax.add_patch(FancyArrowPatch((0.30, 0.40), (0.40, 0.40), arrowstyle='-|>',
-                             mutation_scale=15, color=P[1], linewidth=1.6))
-ax.text(0.35, 0.47, '集成', ha='center', fontsize=9.5, color=P[1])
-
-_box(ax, 0.425, 0.235, 0.24, 0.44, '一体化\n关节执行器', P[0], P[0], fs=11.5,
-     tc='#FFFFFF', bold=True)
-
-feats = [('机电一体化设计', 0.70), ('驱控一体与出厂标定', 0.575),
-         ('热管理协同', 0.45), ('模块化接口', 0.325)]
-for t, y in feats:
-    _box(ax, 0.695, y, 0.275, 0.10, t, P[4], P[2], fs=9.5)
-    ax.add_patch(FancyArrowPatch((0.668, 0.455), (0.69, y + 0.05),
-                                 arrowstyle='-', color='#BDD7EE', linewidth=1.0))
-
-ax.text(0.5, 0.10, '产业影响：降低整机物料成本  ·  提升批量一致性  ·  缩短交付与装配周期',
-        ha='center', fontsize=9.5, color='#595959')
-fig.tight_layout()
-fig.savefig(D + '/fig0.png', dpi=220, bbox_inches='tight')
-plt.close(fig)
-print('图0 已生成')
