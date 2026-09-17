@@ -166,3 +166,49 @@ fig.savefig(D + '/fig5.png', dpi=220, bbox_inches='tight')
 plt.close(fig)
 
 print('五张图已生成：', sorted(os.listdir(D)))
+
+# ---------- 图一 机器人产业链结构与公司所处环节 ----------
+fig, ax = plt.subplots(figsize=(7.9, 2.75))
+ax.set_xlim(0, 1); ax.set_ylim(0.225, 0.99); ax.axis('off')
+
+def box(x, y, w, h, t, fc, ec, fs=10, tc='#000000', bold=False):
+    ax.add_patch(FancyBboxPatch((x, y), w, h,
+                 boxstyle='round,pad=0.006,rounding_size=0.012',
+                 facecolor=fc, edgecolor=ec, linewidth=.9))
+    ax.text(x+w/2, y+h/2, t, ha='center', va='center', fontsize=fs,
+            color=tc, linespacing=1.55, fontweight='bold' if bold else 'normal')
+
+W, G = 0.288, 0.056
+xs = [0.014 + i*(W+G) for i in range(3)]
+
+# 表头带
+for x, t, fc in zip(xs, ['上游：基础材料与通用零部件',
+                         '中游：核心零部件与一体化关节模组',
+                         '下游：机器人整机及终端应用'],
+                    [P[1], P[0], P[1]]):
+    box(x, 0.855, W, 0.095, t, fc, fc, fs=10, tc='#FFFFFF', bold=True)
+
+# 上游
+for i, t in enumerate(['金属材料及工程材料', '轴承', '电子元器件']):
+    box(xs[0], 0.645-i*0.175, W, 0.13, t, P[4], P[2], fs=9.5)
+
+# 中游
+box(xs[1], 0.595, W, 0.205, '谐波减速机 · 驱动器\n编码器 · 力传感器', P[3], P[1], fs=9.5)
+ax.add_patch(FancyArrowPatch((xs[1]+W/2, 0.585), (xs[1]+W/2, 0.515),
+             arrowstyle='-|>', mutation_scale=11, color=P[1], linewidth=1.2))
+box(xs[1], 0.345, W, 0.16, '一体化关节模组', P[0], P[0], fs=11.5, tc='#FFFFFF', bold=True)
+ax.text(xs[1]+W/2, 0.275, '公司所处环节', ha='center', fontsize=10, color=P[0],
+        fontweight='bold')
+
+# 下游
+box(xs[2], 0.625, W, 0.175, '人形机器人 · 协作机器人\n工业机器人', P[3], P[1], fs=9.5)
+ax.add_patch(FancyArrowPatch((xs[2]+W/2, 0.615), (xs[2]+W/2, 0.545),
+             arrowstyle='-|>', mutation_scale=11, color=P[1], linewidth=1.2))
+box(xs[2], 0.345, W, 0.19, '工业制造 · 商业服务\n医疗康复 · 科研教育', P[4], P[2], fs=9.5)
+
+for i in range(2):
+    ax.add_patch(FancyArrowPatch((xs[i]+W+0.008, 0.52), (xs[i+1]-0.008, 0.52),
+                 arrowstyle='-|>', mutation_scale=15, color=P[1], linewidth=1.7))
+fig.tight_layout()
+fig.savefig(D + '/fig0.png', dpi=220, bbox_inches='tight')
+
