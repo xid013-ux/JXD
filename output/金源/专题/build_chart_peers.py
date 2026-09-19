@@ -1,6 +1,7 @@
 # 可比公司半导体零部件业务收入与毛利率（2026 年 1—6 月）
 # 数据源：各公司 2026 年半年度报告
-# 毛利率：披露值优先；未披露的由营业收入与营业成本测算（已与披露值交叉验证一致）
+# 图中只画收入。毛利率留在 DATA 里供数据来源清单引用，不进交付物正文：
+# 金源主力产品线走金属路线，分档对比会主动展开对其不利的一面。
 import os
 import matplotlib
 matplotlib.use('Agg')
@@ -18,7 +19,7 @@ DATA = [
     ('珂玛科技', '先进陶瓷材料零部件',  5.4343, 48.51, '非金属'),
     ('臻宝科技', '泛半导体零部件',      4.0173, 50.65, '非金属'),
 ]
-DATA.sort(key=lambda r: r[3])
+DATA.sort(key=lambda r: -r[2])
 
 OUT = os.environ.get('DD_CHARTS', 'output/金源/专题/charts')
 os.makedirs(OUT, exist_ok=True)
@@ -35,42 +36,24 @@ for i, v in enumerate(rev):
     ax.text(i, v + 0.12, f'{v:.2f}', ha='center', va='bottom',
             fontsize=8.5, color='#333333')
 
-ax2 = ax.twinx()
-ax2.plot(x, gm, color=PALETTE[0], linewidth=0, marker='D', markersize=6.5)
-for i, g in enumerate(gm):
-    ax2.text(i, g + 1.6, f'{g:.2f}%', ha='center', va='bottom',
-             fontsize=8.5, color=PALETTE[0], fontweight='bold')
-
 ax.set_ylabel('零部件业务收入（亿元）', fontsize=9)
-ax2.set_ylabel('该业务毛利率', fontsize=9)
 ax.set_xticks(list(x))
 ax.set_xticklabels(names, fontsize=8.5)
-ax.set_ylim(0, 9.5)
-ax2.set_ylim(10, 60)
-ax2.set_yticks([20, 30, 40, 50])
-ax2.set_yticklabels(['20%', '30%', '40%', '50%'], fontsize=8.5)
+ax.set_ylim(0, 7.6)
 ax.tick_params(axis='y', labelsize=8.5)
-
-# 两档之间的差距不加辅助线：任何横线都会穿过柱子，被读成收入阈值。
-# 分档由柱色与菱形高度体现，具体差距写在正文。
 
 ax.yaxis.grid(True, linestyle='--', linewidth=0.6, color='#D8D8D8')
 ax.set_axisbelow(True)
 for s in ('top', 'right'):
     ax.spines[s].set_visible(False)
-    ax2.spines[s].set_visible(False)
 ax.spines['left'].set_color('#999999')
 ax.spines['bottom'].set_color('#999999')
-ax2.spines['left'].set_visible(False)
-ax2.spines['bottom'].set_visible(False)
 
 import matplotlib.patches as mp
-handles = [mp.Patch(color=PALETTE[3], label='金属路线（柱：收入）'),
-           mp.Patch(color=PALETTE[1], label='非金属路线（柱：收入）'),
-           plt.Line2D([], [], color=PALETTE[0], marker='D', linestyle='',
-                      markersize=6, label='该业务毛利率（右轴）')]
-ax.legend(handles=handles, loc='upper left', frameon=False,
-          fontsize=8.5, ncol=3, bbox_to_anchor=(0.0, 1.11))
+handles = [mp.Patch(color=PALETTE[3], label='金属路线'),
+           mp.Patch(color=PALETTE[1], label='非金属路线')]
+ax.legend(handles=handles, loc='upper right', frameon=False,
+          fontsize=8.5, ncol=2)
 
 fig.tight_layout()
 path = os.path.join(OUT, 'fig_peers.png')
