@@ -127,7 +127,55 @@ def fig_proc():
     plt.close(fig)
 
 
+# ==================== 图2 采购流程 ====================
+def fig_buy():
+    nodes = [
+        ('采购单', '需求部门、采购经理', False),
+        ('批准', '采购经理', True),
+        ('比价议价', '采购经理', False),
+        ('批准（定价）', '总经理', True),
+        ('制定采购订单', '采购', False),
+        ('发出采购订单', '采购', False),
+        ('交期跟进', '采购', False),
+        ('物料接收', '仓库', False),
+        ('对账', '采购', False),
+        ('付款', '采购', False),
+    ]
+    fig, ax = plt.subplots(figsize=(6.0, 7.2))
+    ax.set_xlim(0, 10); ax.set_ylim(0, len(nodes) * 1.16 + 0.5); ax.axis('off')
+    ax.text(3.9, len(nodes) * 1.16 + 0.15, '流程', ha='center', fontsize=9,
+            fontweight='bold', color=DARK)
+    ax.text(7.9, len(nodes) * 1.16 + 0.15, '过程所有者', ha='center', fontsize=9,
+            fontweight='bold', color=DARK)
+    for i, (t, owner, isd) in enumerate(nodes):
+        y = (len(nodes) - i) * 1.16 - 0.55
+        if isd:
+            diamond(ax, 3.9, y, 2.9, 0.86, t, fs=8.8)
+        else:
+            box(ax, 3.9, y, 3.1, 0.68, t, fill=DARK if i == 0 else LIGHT,
+                fs=9, bold=(i == 0))
+        ax.text(7.9, y, owner, ha='center', va='center', fontsize=8.4,
+                color='#333333')
+        if i < len(nodes) - 1:
+            top = 0.43 if isd else 0.34
+            nxt = (len(nodes) - i - 1) * 1.16 - 0.55
+            nt = 0.43 if nodes[i + 1][2] else 0.34
+            arrow(ax, (3.9, y - top), (3.9, nxt + nt))
+    y1 = (len(nodes) - 1) * 1.16 - 0.55
+    y0 = len(nodes) * 1.16 - 0.55
+    ax.plot([2.45, 1.6, 1.6, 2.35], [y1, y1, y0, y0], color=MID, lw=0.9, zorder=2)
+    ax.add_patch(FancyArrowPatch((1.7, y0), (2.35, y0), arrowstyle='-|>',
+                                 mutation_scale=9, linewidth=0.9, color=MID))
+    ax.text(1.32, (y0 + y1) / 2, '否', ha='center', va='center', fontsize=8.2,
+            color='#555555')
+    fig.tight_layout(pad=0.15)
+    fig.savefig(os.path.join(FIG, 'c5_fig2buy.png'), dpi=210,
+                bbox_inches='tight', facecolor='white')
+    plt.close(fig)
+
+
 if __name__ == '__main__':
     fig_rd()
+    fig_buy()
     fig_proc()
     print('图已生成')
