@@ -18,7 +18,7 @@ def f(name):
     return os.path.join(FIG, name)
 
 
-b = Builder()
+b = globals().get('SHARED_BUILDER') or Builder()
 b.h1('五、业务与技术分析')
 
 # ==================== （一）主营业务介绍 ====================
@@ -366,5 +366,6 @@ b.para(
     '机器人产品从研发到量产的完整经验。研发部的专业配置覆盖关节模组从机械'
     '结构设计到运动控制算法的全部技术环节，具备自主完成整机适配的开发能力。')
 
-b.save(os.path.join(HERE, '巨蟹智能尽调报告第五章_业务与技术分析.docx'))
-print('已生成')
+if 'SHARED_BUILDER' not in globals():
+    b.save(os.path.join(HERE, '巨蟹智能尽调报告第五章_业务与技术分析.docx'))
+    print('已生成')

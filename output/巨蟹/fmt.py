@@ -219,3 +219,48 @@ class Builder:
             setattr(cp, k, '')
         cp.revision = 1
         self.doc.save(path)
+        _strip_unused_media(path)
+
+
+def _strip_unused_media(path):
+    """剔除模板带入、正文并未引用的图片，避免交付稿体积虚高。"""
+    import re
+    import zipfile
+    with zipfile.ZipFile(path) as z:
+        names = z.namelist()
+        blobs = {n: z.read(n) for n in names}
+    used = set()
+    for n in names:
+        if not n.endswith('.rels'):
+            continue
+        owner = n.replace('_rels/', '').replace('.rels', '')
+        try:
+            xml = blobs[owner].decode('utf8', 'ignore')
+        except KeyError:
+            continue
+        ids = set(re.findall(r'r:(?:embed|id|link)="(rId\d+)"', xml))
+        base = owner.rsplit('/', 1)[0] if '/' in owner else ''
+        for m in re.finditer(r'Id="(rId\d+)"[^>]*Target="([^"]+)"', blobs[n].decode('utf8')):
+            if m.group(1) in ids:
+                t = m.group(2).lstrip('/')
+                used.add(('%s/%s' % (base, t)).lstrip('/').replace('/./', '/'))
+    media = [n for n in names if n.startswith('word/media/')]
+    drop = {n for n in media if n not in used}
+    if not drop:
+        return
+    keep_rels = {}
+    for n in names:
+        if n.endswith('.rels'):
+            s = blobs[n].decode('utf8')
+            base = n.replace('_rels/', '').replace('.rels', '').rsplit('/', 1)[0]
+            def _cut(m, base=base):
+                tgt = ('%s/%s' % (base, m.group(2).lstrip('/'))).lstrip('/')
+                return '' if tgt in drop else m.group(0)
+            keep_rels[n] = re.sub(
+                r'<Relationship[^>]*Id="(rId\d+)"[^>]*Target="([^"]+)"[^>]*/>',
+                _cut, s).encode('utf8')
+    with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
+        for n in names:
+            if n in drop:
+                continue
+            z.writestr(n, keep_rels.get(n, blobs[n]))
