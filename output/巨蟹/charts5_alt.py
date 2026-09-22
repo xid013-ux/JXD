@@ -165,6 +165,175 @@ def plan3():
     plt.close(fig)
 
 
+# 方案四用：(工序, 主要投入, 主要作业内容)
+LANE = [
+    ('原材料准备与预处理', '特种钢材\n合金材料',
+     '入库检验\n锻件粗加工与退火预处理'),
+    ('核心齿形精密车削', '柔轮、刚轮胚料',
+     '外圆与内孔加工\n柔轮齿形精密加工'),
+    ('热处理与表面处理', '',
+     '真空热处理、渗碳淬火\n防锈防腐涂层处理'),
+    ('精密检测', '',
+     '三坐标、齿轮测量中心\n关键尺寸与齿形误差全数检测'),
+    ('总成装配与传感器集成', '无框电机、轴承\n驱动器、编码器等',
+     '无尘车间高精度装配\n驱动器、编码器一体化封装'),
+    ('性能测试与老化验证', '',
+     '空载与负载跑合、综合性能测试\n高低温及特殊环境适应性测试'),
+    ('包装入库与数字化追溯', '',
+     '成品清洁、防锈包装\n数字化追溯'),
+]
+
+
+# ═════════ 方案四：三栏泳道，中置工序主线，左投入右作业 ═════════
+def plan4():
+    fig, ax = plt.subplots(figsize=(6.9, 3.5))
+    ax.set_xlim(0, 14); ax.set_ylim(0.88, 9.52); ax.axis('off')
+    cx, BW, BH = 6.49, 4.40, 0.80
+    top, step = 8.30, 1.12
+    ys = [top - i * step for i in range(7)]
+    xl, xr = cx - BW / 2 - 0.30, cx + BW / 2 + 0.30
+
+    # 栏目标题
+    yhead = 9.02
+    for x, t, ha in ((xl, '主要投入', 'right'), (cx, '生产工序', 'center'),
+                     (xr, '主要作业内容', 'left')):
+        ax.text(x, yhead, t, ha=ha, va='center', fontsize=8.2,
+                color=DARK, fontweight='bold')
+    ax.plot([0.25, 13.75], [yhead - 0.36, yhead - 0.36],
+            color='#B7C7D8', lw=0.9, zorder=1)
+    # 栏间竖向分隔
+    for x in (cx - BW / 2 - 0.15, cx + BW / 2 + 0.15):
+        ax.plot([x, x], [yhead - 0.36, ys[-1] - BH / 2 - 0.30],
+                color='#DCE5EE', lw=0.8, zorder=1)
+
+    for i, (t, sup, act) in enumerate(LANE):
+        y = ys[i]
+        rbox(ax, cx, y, BW, BH, '%d　%s' % (i + 1, t), DARK, 8.8)
+        if sup:
+            ax.text(xl - 0.30, y, sup, ha='right', va='center', fontsize=7.8,
+                    color='#333333', linespacing=1.55)
+            harrow(ax, xl - 0.18, cx - BW / 2 - 0.02, y, lw=0.95)
+        ax.text(xr, y, act, ha='left', va='center', fontsize=7.8,
+                color='#333333', linespacing=1.55)
+        if i < 6:
+            varrow(ax, cx, y - BH / 2, ys[i + 1] + BH / 2)
+    fig.tight_layout(pad=0.1)
+    fig.savefig(os.path.join(FIG, 'c5_fig3_p4.png'), dpi=220,
+                bbox_inches='tight', facecolor='white')
+    plt.close(fig)
+
+
+# ═════════ 方案五：按工艺段分组，两段底色区 ═════════
+def plan5():
+    fig, ax = plt.subplots(figsize=(6.9, 3.45))
+    ax.set_xlim(0, 14); ax.set_ylim(0.28, 7.32); ax.axis('off')
+    m, gap, HB = 0.34, 0.32, 1.02
+    RESV = 0.88
+    XR = 14 - RESV                       # 工序框区右界，右侧留作折回通道
+    W1 = (XR - m - 3 * gap) / 4
+    W2 = (XR - m - 2 * gap) / 3
+    r1 = [m + W1 / 2 + i * (W1 + gap) for i in range(4)]
+    r2 = [m + W2 / 2 + i * (W2 + gap) for i in range(3)]
+    Y1, Y2 = 5.72, 2.06
+
+    def band(yc, label):
+        ax.add_patch(FancyBboxPatch((m - 0.16, yc - 1.62), XR + 0.32 - m, 3.06,
+                                    boxstyle='round,pad=0.01,rounding_size=0.03',
+                                    linewidth=0.9, edgecolor='#C9D6E4',
+                                    facecolor='#F5F9FD', zorder=0))
+        ax.text(m, yc + 1.12, label, ha='left', va='center',
+                fontsize=8.2, color=DARK, fontweight='bold', zorder=1)
+
+    band(Y1, '一、核心零部件加工')
+    band(Y2, '二、模组总成与出库')
+
+    for i in range(4):
+        t, d, _ = STEPS[i]
+        rbox(ax, r1[i], Y1, W1, HB, '%d　%s' % (i + 1, t.replace('\n', '')),
+             DARK, 7.6)
+        ax.text(r1[i], Y1 - HB / 2 - 0.24, d, ha='center', va='top',
+                fontsize=6.9, color='#3a3a3a', linespacing=1.60)
+        if i < 3:
+            harrow(ax, r1[i] + W1 / 2 + 0.03, r1[i + 1] - W1 / 2 - 0.03, Y1)
+    for i in range(3):
+        t, d, _ = STEPS[i + 4]
+        rbox(ax, r2[i], Y2, W2, HB, '%d　%s' % (i + 5, t.replace('\n', '')),
+             DARK, 7.6)
+        ax.text(r2[i], Y2 - HB / 2 - 0.24, d, ha='center', va='top',
+                fontsize=6.9, color='#3a3a3a', linespacing=1.60)
+        if i < 2:
+            harrow(ax, r2[i] + W2 / 2 + 0.03, r2[i + 1] - W2 / 2 - 0.03, Y2)
+
+    xe, xj = r1[3] + W1 / 2, XR + 0.16 + (14 - XR - 0.16) / 2
+    ymid = 3.80
+    ax.plot([xe + 0.12, xj, xj, r2[0], r2[0]],
+            [Y1, Y1, ymid, ymid, Y2 + HB / 2 + 0.32],
+            color=MID, lw=1.0, zorder=2, solid_capstyle='round')
+    varrow(ax, r2[0], Y2 + HB / 2 + 0.36, Y2 + HB / 2)
+    fig.tight_layout(pad=0.1)
+    fig.savefig(os.path.join(FIG, 'c5_fig3_p5.png'), dpi=220,
+                bbox_inches='tight', facecolor='white')
+    plt.close(fig)
+
+
+# ═════════ 方案六：自制线与外购件双线汇合于总成 ═════════
+def plan6():
+    fig, ax = plt.subplots(figsize=(6.9, 3.15))
+    ax.set_xlim(0, 14); ax.set_ylim(0.55, 7.25); ax.axis('off')
+    m, gap, HB = 0.32, 0.32, 1.02
+    RESV = 0.86
+    W1 = (14 - m - RESV - 3 * gap) / 4
+    W2 = (14 - 2 * m - 2 * gap) / 3
+    r1 = [m + W1 / 2 + i * (W1 + gap) for i in range(4)]
+    r2 = [m + W2 / 2 + i * (W2 + gap) for i in range(3)]
+    Y1, Y2 = 6.28, 1.92
+
+    for i in range(4):
+        t, d, _ = STEPS[i]
+        rbox(ax, r1[i], Y1, W1, HB, '%d　%s' % (i + 1, t.replace('\n', '')),
+             DARK, 7.6)
+        ax.text(r1[i], Y1 - HB / 2 - 0.24, d, ha='center', va='top',
+                fontsize=6.9, color='#3a3a3a', linespacing=1.60)
+        if i < 3:
+            harrow(ax, r1[i] + W1 / 2 + 0.03, r1[i + 1] - W1 / 2 - 0.03, Y1)
+    ax.text(m - 0.06, Y1 + HB / 2 + 0.34, '自制：柔轮、刚轮等谐波减速机核心件',
+            ha='left', va='center', fontsize=7.4, color=DARK,
+            fontweight='bold')
+
+    for i in range(3):
+        t, d, _ = STEPS[i + 4]
+        rbox(ax, r2[i], Y2, W2, HB, '%d　%s' % (i + 5, t.replace('\n', '')),
+             DARK, 7.6)
+        ax.text(r2[i], Y2 - HB / 2 - 0.24, d, ha='center', va='top',
+                fontsize=6.9, color='#3a3a3a', linespacing=1.60)
+        if i < 2:
+            harrow(ax, r2[i] + W2 / 2 + 0.03, r2[i + 1] - W2 / 2 - 0.03, Y2)
+
+    # 外购与委外件支线
+    bw, bh, bx, by = 3.05, 1.12, 1.60, 4.08
+    ax.add_patch(FancyBboxPatch((bx - bw / 2, by - bh / 2), bw, bh,
+                                boxstyle='round,pad=0.008,rounding_size=0.02',
+                                linewidth=1.0, edgecolor=MID,
+                                facecolor='#EAF2FA', zorder=3))
+    ax.text(bx, by, '外购与委外件\n无框电机、轴承\n驱动器、编码器等',
+            ha='center', va='center', fontsize=6.9, color='#23425F',
+            linespacing=1.58, zorder=4)
+    varrow(ax, bx, by - bh / 2, Y2 + HB / 2)
+
+    xe, xj = r1[3] + W1 / 2, 14 - RESV / 2
+    ymid = 4.08
+    xin = 3.55
+    ax.plot([xe + 0.12, xj, xj, xin, xin],
+            [Y1, Y1, ymid, ymid, Y2 + HB / 2 + 0.32],
+            color=MID, lw=1.0, zorder=2, solid_capstyle='round')
+    varrow(ax, xin, Y2 + HB / 2 + 0.36, Y2 + HB / 2)
+    fig.tight_layout(pad=0.1)
+    fig.savefig(os.path.join(FIG, 'c5_fig3_p6.png'), dpi=220,
+                bbox_inches='tight', facecolor='white')
+    plt.close(fig)
+
+
 if __name__ == '__main__':
     plan1(); plan2(); plan3()
-    print('三方案已生成')
+    plan4(); plan5(); plan6()
+    print('六方案已生成')
