@@ -101,32 +101,6 @@ def fig_rd():
     plt.close(fig)
 
 
-# ==================== 图2 生产工艺流程 ====================
-def fig_proc():
-    steps = [
-        ('原材料准备\n与预处理', '特种钢材、合金材料入库检验\n锻件粗加工与退火预处理'),
-        ('核心齿形\n精密车削', '柔轮、刚轮外圆与内孔加工\n柔轮齿形精密加工'),
-        ('热处理与\n表面处理', '真空热处理、渗碳淬火\n防锈防腐涂层处理'),
-        ('精密检测', '三坐标、齿轮测量中心\n关键尺寸与齿形误差全数检测'),
-        ('总成装配与\n传感器集成', '无尘车间高精度装配\n驱动器、编码器一体化封装'),
-        ('性能测试与\n老化验证', '空载与负载跑合、综合性能测试\n高低温及特殊环境适应性测试'),
-        ('包装入库与\n数字化追溯', '成品清洁、防锈包装\n数字化追溯'),
-    ]
-    fig, ax = plt.subplots(figsize=(6.4, 6.2))
-    ax.set_xlim(0, 10); ax.set_ylim(0, len(steps) * 1.32 + 0.4); ax.axis('off')
-    for i, (t, d) in enumerate(steps):
-        y = (len(steps) - i) * 1.32 - 0.5
-        box(ax, 2.05, y, 3.1, 0.98, t, fill=DARK, fs=9, bold=True)
-        ax.text(4.0, y, d, ha='left', va='center', fontsize=8.4,
-                color='#333333', linespacing=1.55)
-        if i < len(steps) - 1:
-            arrow(ax, (2.05, y - 0.49), (2.05, y - 0.83))
-    fig.tight_layout(pad=0.15)
-    fig.savefig(os.path.join(FIG, 'c5_fig2.png'), dpi=210,
-                bbox_inches='tight', facecolor='white')
-    plt.close(fig)
-
-
 # ==================== 图2 采购流程 ====================
 def fig_buy():
     nodes = [
@@ -177,5 +151,4 @@ def fig_buy():
 if __name__ == '__main__':
     fig_rd()
     fig_buy()
-    fig_proc()
     print('图已生成')
