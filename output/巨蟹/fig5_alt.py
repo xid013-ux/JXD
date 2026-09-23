@@ -137,6 +137,76 @@ def plan_c(name='fig3_c.png'):
     plan_b(name=name, donut=False)
 
 
+# ═══════ 方案三（优化）═══════
+import math
+
+ROWS_C = [('按关节类型', [('旋转关节', 68.0, DARK, 'white'),
+                          ('直线关节', 4.0, SOFT, TXT)]),
+          ('按整机归属', [('国产整机需求', 50.2, MID, 'white'),
+                          ('境外整机需求', 21.8, '#BDD7EE', TXT)])]
+
+
+def plan_c2(name='fig3_c2.png'):
+    FS_T, FS_L, FS_P = 9.5, 8.2, 9.0
+    R = 11.5
+    H_T = FS_T * 1.5 / PT_U
+    H_L = FS_L * 1.5 / PT_U
+    PAD, GAP_L = 3.0, 0.8
+
+    # 图例各列按最长一项定宽，数值与占比分列右对齐
+    w_nm = max(twidth(nm, FS_L) for _, sg in ROWS_C for nm, *_ in sg)
+    w_vl = max(twidth('%.1f万个' % v, FS_L) for _, sg in ROWS_C for _, v, *_ in sg)
+    w_pc = max(twidth('%.0f%%' % (v / TOTAL * 100), FS_L)
+               for _, sg in ROWS_C for _, v, *_ in sg)
+    SQ, g1, g2, g3 = 2.6, 1.6, 2.6, 2.2
+    w_leg = SQ + g1 + w_nm + g2 + w_vl + g3 + w_pc
+
+    YH = PAD + H_T + 2.0 + 2 * R + 3.6 + 2 * H_L + GAP_L + PAD
+    fig, ax = _fig(YH)
+    ax.set_aspect('equal')
+    cy = YH - PAD - H_T - 2.0 - R
+    cxs = [26.5, 73.5]
+
+    # 两个口径之间的分隔
+    ax.plot([50, 50], [cy - R - 3.0, cy + R + 3.0], color='#E2E8EF',
+            lw=0.8, zorder=0)
+
+    for cx, (title, segs) in zip(cxs, ROWS_C):
+        ax.text(cx, YH - PAD - H_T / 2, title, ha='center', va='center',
+                fontsize=FS_T, color=DARK, fontweight='bold')
+        a0 = 90.0
+        for nm, v, fc, tc in segs:
+            ang = v / TOTAL * 360
+            ax.add_patch(Wedge((cx, cy), R, a0 - ang, a0, facecolor=fc,
+                               edgecolor='white', linewidth=1.4, zorder=3))
+            if ang >= 45:                     # 扇形够大才在图上标占比
+                mid = math.radians(a0 - ang / 2)
+                ax.text(cx + 0.62 * R * math.cos(mid),
+                        cy + 0.62 * R * math.sin(mid),
+                        '%.0f%%' % (v / TOTAL * 100), ha='center',
+                        va='center', fontsize=FS_P, color=tc,
+                        fontweight='bold', zorder=4)
+            a0 -= ang
+        # 浅色扇形补一圈浅灰描边，避免与白底相融
+        ax.add_patch(Wedge((cx, cy), R, 0, 360, facecolor='none',
+                           edgecolor='#C9D6E4', linewidth=0.7, zorder=4))
+
+        x_leg = cx - w_leg / 2
+        for k, (nm, v, fc, tc) in enumerate(segs):
+            yy = cy - R - 3.6 - H_L / 2 - k * (H_L + GAP_L)
+            ax.add_patch(Rectangle((x_leg, yy - SQ / 2), SQ, SQ, facecolor=fc,
+                                   edgecolor='#C9D6E4', linewidth=0.5, zorder=3))
+            ax.text(x_leg + SQ + g1, yy, nm, ha='left', va='center',
+                    fontsize=FS_L, color=TXT)
+            ax.text(x_leg + SQ + g1 + w_nm + g2 + w_vl, yy, '%.1f万个' % v,
+                    ha='right', va='center', fontsize=FS_L, color=DARK,
+                    fontweight='bold')
+            ax.text(x_leg + w_leg, yy, '%.0f%%' % (v / TOTAL * 100),
+                    ha='right', va='center', fontsize=FS_L, color=DARK,
+                    fontweight='bold')
+    _save(fig, name)
+
+
 if __name__ == '__main__':
     plan_a(); plan_b(); plan_c()
     print('三方案已生成')
