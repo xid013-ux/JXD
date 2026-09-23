@@ -12,7 +12,8 @@ matplotlib.use('Agg')
 matplotlib.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei']
 matplotlib.rcParams['axes.unicode_minus'] = False
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Wedge
+import math
 import os
 
 P = ['#1F4E79', '#2E75B6', '#9DC3E6', '#BDD7EE', '#DEEBF7']
@@ -106,17 +107,70 @@ fig.savefig(D + '/fig2.png', dpi=220, bbox_inches='tight')
 plt.close(fig)
 
 # ---------- 图三 关节模组需求结构 ----------
-fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.1))
-axes[0].pie([68.0, 4.0], labels=['旋转关节\n68.0万个', '直线关节\n4.0万个'],
-            autopct='%1.0f%%', startangle=90, colors=[P[0], P[2]],
-            textprops={'fontsize': 9}, wedgeprops={'linewidth': .8, 'edgecolor': 'white'})
-axes[0].set_title('按关节类型', fontsize=10, pad=8)
-axes[1].pie([50.2, 21.8], labels=['国产整机需求\n50.2万个', '境外整机需求\n21.8万个'],
-            autopct='%1.0f%%', startangle=90, colors=[P[1], P[3]],
-            textprops={'fontsize': 9}, wedgeprops={'linewidth': .8, 'edgecolor': 'white'})
-axes[1].set_title('按整机归属', fontsize=10, pad=8)
-fig.tight_layout()
-fig.savefig(D + '/fig3.png', dpi=220, bbox_inches='tight')
+# 画布宽度即插入宽度（5.70 英寸），横向坐标 0-100，故图内字号即纸上字号，
+# 与本章其余各图缩放后的实际字号取齐：小标题 7.5pt、正文 7.3pt。
+_W_IN, _PT_U = 5.70, 72 * 5.70 / 100
+_FS_T, _FS_N, _FS_P = 7.5, 7.3, 10.0
+_TOTAL, _R, _PAD, _UP = 72.0, 15.0, 3.0, 6.8
+_TXT = '#404A56'
+# 绘制次序使两饼的小扇形分处左上与右上，标注得以各自向外展开
+_GRP = [('按关节类型', [('旋转关节', 68.0, P[0], 'white'),
+                        ('直线关节', 4.0, P[2], _TXT)]),
+        ('按整机归属', [('境外整机需求', 21.8, P[2], _TXT),
+                        ('国产整机需求', 50.2, P[0], 'white')])]
+
+
+def _tw(t, fs):
+    """估算一行文字的渲染宽度（坐标单位）：全角计 1 字宽，半角计 0.55。"""
+    return sum(0.55 if ord(c) < 0x2000 else 1.0 for c in t) * fs / _PT_U
+
+
+_H_T = _FS_T * 1.5 / _PT_U
+_YH = _PAD + _H_T + 2.2 + _H_T + 1.6 + _UP + 2 * _R + _PAD
+fig, ax = plt.subplots(figsize=(_W_IN, _W_IN * _YH / 100))
+ax.set_xlim(0, 100); ax.set_ylim(0, _YH); ax.axis('off'); ax.set_aspect('equal')
+_cy, _cxs = _PAD + _R, [29.0, 71.0]
+_yt = _cy + _R + _UP + 1.6 + _H_T / 2
+ax.text(50, _yt + _H_T + 2.2, '2025年关节模组需求合计 72.0 万个',
+        ha='center', va='center', fontsize=_FS_T, color=P[0], fontweight='bold')
+
+
+def _stack(x, y, nm, v, tc, ha='center'):
+    """名称、占比、数量三行就近标注，占比居中放大。"""
+    ax.text(x, y + 3.2, nm, ha=ha, va='center', fontsize=_FS_N, color=tc, zorder=5)
+    ax.text(x, y - 0.1, '%.0f%%' % (v / _TOTAL * 100), ha=ha, va='center',
+            fontsize=_FS_P, color=tc, fontweight='bold', zorder=5)
+    ax.text(x, y - 3.4, '%.1f万个' % v, ha=ha, va='center', fontsize=_FS_N,
+            color=tc, zorder=5)
+
+
+for _cx, (_title, _segs) in zip(_cxs, _GRP):
+    ax.text(_cx, _yt, _title, ha='center', va='center', fontsize=_FS_T,
+            color=P[0], fontweight='bold')
+    _a0 = 90.0
+    for _nm, _v, _fc, _tc in _segs:
+        _ang = _v / _TOTAL * 360
+        ax.add_patch(Wedge((_cx, _cy), _R, _a0 - _ang, _a0, facecolor=_fc,
+                           edgecolor='white', linewidth=1.4, zorder=3))
+        _mid = math.radians(_a0 - _ang / 2)
+        if _ang >= 180:
+            # 外移系数使名称行整体落在圆心之下，字顶不致越过扇形分界
+            _k = 0.42 if _ang >= 300 else 0.53
+            _stack(_cx + _k * _R * math.cos(_mid),
+                   _cy + _k * _R * math.sin(_mid), _nm, _v, _tc)
+        else:
+            _o = -1 if _cx < 50 else 1          # 各自朝版面外侧展开
+            _x1, _y1 = _cx + _R * math.cos(_mid), _cy + _R * math.sin(_mid)
+            _x2, _y2 = _cx + 1.16 * _R * math.cos(_mid), _cy + 1.16 * _R * math.sin(_mid)
+            _x3 = _cx + _o * (_R + 2.2)
+            ax.plot([_x1, _x2, _x3 - _o * 0.6], [_y1, _y2, _y2],
+                    color='#9AA7B4', lw=0.8, zorder=2)
+            _stack(_x3, _y2, _nm, _v, _TXT, ha='right' if _o < 0 else 'left')
+        _a0 -= _ang
+    ax.add_patch(Wedge((_cx, _cy), _R, 0, 360, facecolor='none',
+                       edgecolor='#C9D6E4', linewidth=0.7, zorder=4))
+fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+fig.savefig(D + '/fig3.png', dpi=300, facecolor='white')
 plt.close(fig)
 
 # ---------- 图四 全球谐波减速机产能 ----------
