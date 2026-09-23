@@ -210,3 +210,65 @@ def plan_c2(name='fig3_c2.png'):
 if __name__ == '__main__':
     plan_a(); plan_b(); plan_c()
     print('三方案已生成')
+
+
+# ═══════ 方案三（再优化）：标签直接上图，去掉图例 ═══════
+# 绘制次序使两饼的小扇形分处左上与右上，标注得以各自向外展开
+ROWS_D = [('按关节类型', [('旋转关节', 68.0, DARK, 'white'),
+                          ('直线关节', 4.0, SOFT, TXT)]),
+          ('按整机归属', [('境外整机需求', 21.8, SOFT, TXT),
+                          ('国产整机需求', 50.2, DARK, 'white')])]
+
+
+def plan_d(name='fig3_d.png'):
+    FS_T, FS_N, FS_P = 9.5, 8.2, 13.0
+    R = 13.5
+    H_T = FS_T * 1.5 / PT_U
+    PAD = 3.0
+    UP = 6.8                                   # 外挂标签高出饼顶的部分
+    YH = PAD + H_T + 2.2 + H_T + 1.6 + UP + 2 * R + PAD
+    fig, ax = _fig(YH)
+    ax.set_aspect('equal')
+    cy = PAD + R
+    cxs = [26.0, 70.0]
+
+    y_title = cy + R + UP + 1.6 + H_T / 2
+    ax.text(50, y_title + H_T / 2 + 2.2 + H_T / 2,
+            '2025年关节模组需求合计 72.0 万个', ha='center', va='center',
+            fontsize=FS_T, color=DARK, fontweight='bold')
+
+    def stack(x, y, nm, v, tc, ha='center'):
+        """名称、占比、数量三行，占比居中放大。"""
+        ax.text(x, y + 3.5, nm, ha=ha, va='center', fontsize=FS_N,
+                color=tc, zorder=5)
+        ax.text(x, y - 0.2, '%.0f%%' % (v / TOTAL * 100), ha=ha, va='center',
+                fontsize=FS_P, color=tc, fontweight='bold', zorder=5)
+        ax.text(x, y - 3.9, '%.1f万个' % v, ha=ha, va='center', fontsize=FS_N,
+                color=tc, zorder=5)
+
+    for cx, (title, segs) in zip(cxs, ROWS_D):
+        ax.text(cx, y_title, title, ha='center', va='center', fontsize=FS_T,
+                color=DARK, fontweight='bold')
+        a0 = 90.0
+        for nm, v, fc, tc in segs:
+            ang = v / TOTAL * 360
+            ax.add_patch(Wedge((cx, cy), R, a0 - ang, a0, facecolor=fc,
+                               edgecolor='white', linewidth=1.4, zorder=3))
+            mid = math.radians(a0 - ang / 2)
+            if ang >= 180:                     # 过半圆，标注置于扇形内
+                k = 0.42 if ang >= 300 else 0.50
+                stack(cx + k * R * math.cos(mid),
+                      cy + k * R * math.sin(mid), nm, v, tc)
+            else:                              # 其余引线挑出至饼外
+                out = -1 if cx < 50 else 1     # 各自朝版面外侧展开
+                x1, y1 = cx + R * math.cos(mid), cy + R * math.sin(mid)
+                x2, y2 = cx + 1.16 * R * math.cos(mid), cy + 1.16 * R * math.sin(mid)
+                x3 = cx + out * (R + 2.2)
+                ax.plot([x1, x2, x3 - out * 0.6], [y1, y2, y2],
+                        color='#9AA7B4', lw=0.8, zorder=2)
+                stack(x3, y2, nm, v, TXT,
+                      ha='right' if out < 0 else 'left')
+            a0 -= ang
+        ax.add_patch(Wedge((cx, cy), R, 0, 360, facecolor='none',
+                           edgecolor='#C9D6E4', linewidth=0.7, zorder=4))
+    _save(fig, name)
