@@ -13,7 +13,7 @@ from fmt import Builder
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '巨蟹智能尽调报告第五章第六章.docx')
 
-TBL_OFFSET = 9   # 第五章共 9 张表
+TBL_OFFSET = 10  # 第五章共 10 张表
 FIG_OFFSET = 3   # 第五章共 3 张图
 
 
