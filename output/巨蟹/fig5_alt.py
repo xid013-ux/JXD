@@ -221,8 +221,8 @@ ROWS_D = [('按关节类型', [('旋转关节', 68.0, DARK, 'white'),
 
 
 def plan_d(name='fig3_d.png'):
-    FS_T, FS_N, FS_P = 9.5, 8.2, 13.0
-    R = 13.5
+    FS_T, FS_N, FS_P = 9.5, 8.0, 13.0
+    R = 15.0
     H_T = FS_T * 1.5 / PT_U
     PAD = 3.0
     UP = 6.8                                   # 外挂标签高出饼顶的部分
@@ -230,7 +230,7 @@ def plan_d(name='fig3_d.png'):
     fig, ax = _fig(YH)
     ax.set_aspect('equal')
     cy = PAD + R
-    cxs = [26.0, 70.0]
+    cxs = [29.0, 71.0]
 
     y_title = cy + R + UP + 1.6 + H_T / 2
     ax.text(50, y_title + H_T / 2 + 2.2 + H_T / 2,
@@ -256,7 +256,8 @@ def plan_d(name='fig3_d.png'):
                                edgecolor='white', linewidth=1.4, zorder=3))
             mid = math.radians(a0 - ang / 2)
             if ang >= 180:                     # 过半圆，标注置于扇形内
-                k = 0.42 if ang >= 300 else 0.50
+                # 0.53 使名称行整体落在圆心之下，字顶不致越过分界
+                k = 0.42 if ang >= 300 else 0.53
                 stack(cx + k * R * math.cos(mid),
                       cy + k * R * math.sin(mid), nm, v, tc)
             else:                              # 其余引线挑出至饼外
