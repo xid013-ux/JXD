@@ -142,8 +142,13 @@ class Builder:
         return p
 
     # ---------- 表格 ----------
-    def table(self, rows, widths=None):
-        """rows[0] 为表头。widths 为相对列宽，按版心折算为绝对列宽。"""
+    def table(self, rows, widths=None, head_rows=1):
+        """rows 前 head_rows 行为表头，widths 为相对列宽，按版心折算为绝对列宽。
+
+        表头内相邻且文字相同的单元格自动合并：同一行内相同者横向合并，
+        同一列上下相同者纵向合并，用以构成模板中「期间／营业收入·占比」
+        那样的两层表头。
+        """
         ncol = len(rows[0])
         tbl = self.doc.add_table(rows=len(rows), cols=ncol)
         if self.sect is not None:
@@ -186,7 +191,7 @@ class Builder:
             trPr = tr.get_or_add_trPr()
             trPr.append(OxmlElement('w:cantSplit'))
             trPr.append(_el('w:trHeight', val='397'))
-            if ri == 0:
+            if ri < head_rows:
                 trPr.append(OxmlElement('w:tblHeader'))
             trPr.append(_el('w:jc', val='center'))
 
@@ -204,11 +209,42 @@ class Builder:
                 pf = p.paragraph_format
                 pf.space_before = Pt(0)
                 pf.space_after = Pt(0)
-                if ri == 0:
+                if ri < head_rows:
                     pf.alignment = WD_ALIGN_PARAGRAPH.CENTER
                     p._p.get_or_add_pPr().append(OxmlElement('w:keepNext'))
-                self._rpr(p.add_run(str(val)), 10.5, ri == 0)
+                self._rpr(p.add_run(str(val)), 10.5, ri < head_rows)
+
+        if head_rows > 1:
+            self._merge_head(tbl, rows, head_rows, ncol)
         return tbl
+
+    @staticmethod
+    def _dedupe(cell):
+        """合并后单元格会留下重复段落，只保留首段。"""
+        for p in cell.paragraphs[1:]:
+            p._p.getparent().remove(p._p)
+
+    def _merge_head(self, tbl, rows, head_rows, ncol):
+        for ri in range(head_rows):                     # 先横向
+            ci = 0
+            while ci < ncol:
+                cj = ci
+                while (cj + 1 < ncol and rows[ri][cj + 1] == rows[ri][ci]
+                       and str(rows[ri][ci]).strip()):
+                    cj += 1
+                if cj > ci:
+                    self._dedupe(tbl.cell(ri, ci).merge(tbl.cell(ri, cj)))
+                ci = cj + 1
+        for ci in range(ncol):                          # 再纵向
+            ri = 0
+            while ri < head_rows:
+                rj = ri
+                while (rj + 1 < head_rows and rows[rj + 1][ci] == rows[ri][ci]
+                       and str(rows[ri][ci]).strip()):
+                    rj += 1
+                if rj > ri:
+                    self._dedupe(tbl.cell(ri, ci).merge(tbl.cell(rj, ci)))
+                ri = rj + 1
 
     # ---------- 收尾 ----------
     def save(self, path):
